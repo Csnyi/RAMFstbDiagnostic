@@ -1,0 +1,233 @@
+* {
+    box-sizing: border-box;
+}
+
+.row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+[class*="col-"] {
+    float: left;
+    padding: 15px;
+}
+
+html {
+    font-family: "Lucida Sans", sans-serif;
+}
+
+.createReport,
+.initSmartSNR {
+    display: none;
+}
+
+.header {
+    background-color: #5f9ea0;
+    color: #ffffff;
+    padding: 15px;
+    text-align: center;
+}
+
+.menu ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu li {
+    padding: 8px;
+    margin-bottom: 7px;
+    background-color: #5f9ea0;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.menu li:hover {
+    background-color: #707070;
+}
+
+input[type=text],
+input[type=number],
+select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.menu li.del {
+    background-color: #a05f5f;
+}
+
+.menu li.del:hover {
+    background-color: #707070;
+}
+
+ul a {
+    text-decoration: none;
+    color: #fff;
+}
+
+.success,
+.alert,
+.warn {
+    color: #fff;
+    width: 100%;
+    height: auto;
+    text-align: left;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.success {
+    background-color: #5f9ea0;
+}
+
+.alert {
+    background-color: #a05f5f;
+}
+
+.warn {
+    background-color: #9e7728;
+}
+
+#conn-progress-container, #progress-container, #progress-container-scan {
+    width: 100%;
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    height: 30px;
+    margin-top: 20px;
+}
+
+#conn-progress-bar, #progress-bar, #progress-bar-scan {
+    width: 0%;
+    height: 100%;
+    background-color: #5f9ea0;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    border-radius: 5px;
+}
+
+.content {
+    margin: 15px;
+}
+
+.helpinfo table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+  
+.helpinfo td, .helpinfo th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+  
+.helpinfo tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+hr {
+    /*display: block;*/
+    margin-top: 2em;
+    margin-bottom: 2em;
+    height: 2px;
+    border-width: 0;
+    color: #5f9ea0;
+    background-color: #5f9ea0;
+    width: 100%;
+}
+
+.list ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.list li {
+    padding: 8px;
+    margin-bottom: 7px;
+    background-color: #5f9ea4;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* progress bar */
+#streamProgress {
+    width: 100%;
+    background-color: rgb(180, 180, 180);
+}
+
+#eventsBar {
+    width: 0%;
+    height: 10px;
+    background-color: #2f7f32;
+}
+
+.aside {
+    background-color: #5f9ea0;
+    padding: 15px;
+    color: #ffffff;
+    text-align: left;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.footer {
+    background-color: #5f9ea0;
+    color: #ffffff;
+    text-align: center;
+    font-size: 12px;
+    padding: 15px;
+}
+
+/* For mobile phones: */
+[class*="col-"] {
+    width: 100%;
+}
+      
+@media only screen and (min-width: 600px) {
+    /* For tablets: */
+    .col-s-1 {width: 8.33%;}
+    .col-s-2 {width: 16.66%;}
+    .col-s-3 {width: 25%;}
+    .col-s-4 {width: 33.33%;}
+    .col-s-5 {width: 41.66%;}
+    .col-s-6 {width: 50%;}
+    .col-s-7 {width: 58.33%;}
+    .col-s-8 {width: 66.66%;}
+    .col-s-9 {width: 75%;}
+    .col-s-10 {width: 83.33%;}
+    .col-s-11 {width: 91.66%;}
+    .col-s-12 {width: 100%;}
+}
+@media only screen and (min-width: 768px) {
+    /* For desktop: */
+    .col-1 {width: 8.33%;}
+    .col-2 {width: 16.66%;}
+    .col-3 {width: 25%;}
+    .col-4 {width: 33.33%;}
+    .col-5 {width: 41.66%;}
+    .col-6 {width: 50%;}
+    .col-7 {width: 58.33%;}
+    .col-8 {width: 66.66%;}
+    .col-9 {width: 75%;}
+    .col-10 {width: 83.33%;}
+    .col-11 {width: 91.66%;}
+    .col-12 {width: 100%;}
+}
