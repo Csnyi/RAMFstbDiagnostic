@@ -1,4 +1,6 @@
-// defined global variables =============================================================
+if($(".createReport").hide()){
+
+  // defined global variables =============================================================
 let satList = [];
 let reportList = [];
 let reportListNew = [];
@@ -779,7 +781,7 @@ function checkJSONForm(response) {
 }
 
 function readSpectrumJson() {
-  const [file] = document.getElementById('fileinput').files;
+  const [file] = document.getElementById('fileinput-cr').files;
   const reader = new FileReader(); 
   if (file) {
       reader.readAsText(file);
@@ -811,6 +813,7 @@ function readSpectrumJson() {
       yRssiData = [];
       resetLog();
       dataToDrawCharts();
+      optionList("tpList", reportData);
 
   }, false); 
 };
@@ -852,7 +855,7 @@ function exportJson() {
 
 // Json load handling
 
-let fileInput = document.getElementById("fileinput");
+let fileInput = document.getElementById("fileinput-cr");
 
 fileInput.addEventListener("click", function () {
   initPlot();
@@ -952,4 +955,10 @@ $(function(){
         $("#dsq").val(dsq);
     });
 
+    $(".snrSpectSw").click(function () {
+        $(".createReport, .initSmartSNR").toggle();
+    });
+
 });
+
+}

@@ -36,7 +36,7 @@ function checkJSONForm(response) {
 }
 
 function readJson() {
-    const [file] = document.getElementById('fileinput').files;
+    const [file] = document.getElementById('fileinput-snr').files;
     const reader = new FileReader(); 
     if (file) {
         reader.readAsText(file);
@@ -290,7 +290,7 @@ function updateChartJson(data) {
 }
 
 
-let fileInput = document.getElementById("fileinput");
+let fileInput = document.getElementById("fileinput-snr");
 
 fileInput.addEventListener("click", function () {
     reset();
