@@ -53,7 +53,7 @@
       <div class="col-2 col-s-3">
         <div class="menu">
           <ul>
-            <li class="snrSpectSw">SNR/spectrum Switch</li>
+            <li class="snrSpectSw">SNR/Spectrum Switch</li>
           </ul>
         </div>
         <div class="list">
@@ -62,10 +62,33 @@
               <label for="satList">Satellite list:</label>
               <select id="satList" name="satList"></select>
             </li>
+            <li>
+              <label for="freeOnly">Free only:</label>
+              <select id="freeOnly" name="freeOnly">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </li>
+            <li>
+              <label for="nit">Network search:</label>
+              <select id="nit" name="nit">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </li>
+            <li>
+              <label for="channelType">Channel type:</label>
+              <select id="channelType" name="channelType">
+                <option value="all">all</option>
+                <option value="tv">tv</option>
+                <option value="radio">radio</option>
+              </select>
+            </li>
           </ul>
         </div>
         <div class="menu">
           <ul>
+            <li id="blindscan">Blindscan</li>
             <li id="createReportBtn">Create Report</li>
             <!-- The Modal -->
             <div id="trunkModalScan" class="modal-scan">
@@ -123,6 +146,7 @@
           <p>Status: <span id="status"></span></p>
           <div class="list">
             <ul>
+              <li><p>Blindscan response: <br><span id="responseScan"></span></p></li>
               <li><p id="logInfo"></p></li>
               <li><p id="response"></p></li>
               <li>
@@ -143,149 +167,137 @@
       <div class="col-2 col-s-3">
         <div class="menu">
           <ul>
-            <li class="snrSpectSw">SNR/spectrum Switch</li>
+            <li class="snrSpectSw">SNR/Spectrum Switch</li>
           </ul>
         </div>
         <div class="list">
-          <ul>
-            <li>
-              <label for="freq">Frequency:</label>
-              <input type="number" name="freq" id="freq" size="8" />
-              <label for="freq_lo">Local Oscillator:</label>
-              <select id="freq_lo" name="freq_lo">
-                <option value="5150">5150</option>
-                <option value="5750">5750</option>
-                <option value="5950">5950</option>
-                <option value="9750">9750</option>
-                <option value="10000">10000</option>
-                <option value="10050">10050</option>
-                <option value="10450">10450</option>
-                <option value="10600">10600</option>
-                <option value="10700">10700</option>
-                <option value="10750">10750</option>
-                <option value="11250">11250</option>
-                <option value="11300">11300</option>
-              </select>
-            </li>
-            <li>
-              <label for="sr">Symbol rate:</label>
-              <input type="number" name="sr" id="sr" size="8" />
-            </li>
-            <li>
-              <label for="pol">Polarization:</label>
-              <select id="pol" name="pol">
-                <option value="0">Horizontal</option>
-                <option value="1">Vertical</option>
-              </select>
-            </li>
-            <li>
-              <label for="tone">Tone:</label>
-              <select id="tone" name="tone">
-                <option value="0">Off</option>
-                <option value="1">On</option>
-              </select>
-            </li>
-            <li>
-              <label for="dsq">DISEqC Port - command:</label>
-              <select name="dsq" id="dsq">
-                <option value="0">Off</option>
-                <optgroup label="1.0, up to 4 ports (one single 4x1 DiSEqC switch)">
-                  <option value="E01038F0">01 - E01038F0</option>
-                  <option value="E01038F4">02 - E01038F4</option>
-                  <option value="E01038F8">03 - E01038F8</option>
-                  <option value="E01038FC">04 - E01038FC</option>
-                </optgroup>
-                <optgroup label="1.1, up to 16 ports (8 uncommitted +8 committed)">
-                <optgroup label="UNCOMMITTED">
-                  <option value="E01039F0">01 - E01039F0</option>
-                  <option value="E01039F1">02 - E01039F1</option>
-                  <option value="E01039F2">03 - E01039F2</option>
-                  <option value="E01039F3">04 - E01039F3</option>
-                  <option value="E01039F4">05 - E01039F4</option>
-                  <option value="E01039F5">06 - E01039F5</option>
-                  <option value="E01039F6">07 - E01039F6</option>
-                  <option value="E01039F7">08 - E01039F7</option>
-                </optgroup>
-                <optgroup label="COMMITTED">
-                  <option value="E01039F8">09 - E01039F8</option>
-                  <option value="E01039F9">10 - E01039F9</option>
-                  <option value="E01039FA">11 - E01039FA</option>
-                  <option value="E01039FB">12 - E01039FB</option>
-                  <option value="E01039FC">13 - E01039FC</option>
-                  <option value="E01039FD">14 - E01039FD</option>
-                  <option value="E01039FE">15 - E01039FE</option>
-                  <option value="E01039FF">16 - E01039FF</option>
-                </optgroup>
-                </optgroup>
-              </select>
-            </li>
-            <li>
-              <label for="slnbe">3D converter polling:</label>
-              <select id="slnbe" name="slnbe">
-                <option value="0">Disabled</option>
-                <option value="1">Enabled</option>
-              </select>
-            </li>
-          </ul>
-        </div>
+      <ul>
+        <li>
+          <label for="freq">Frequency:</label>
+          <input type="number" name="freq" id="freq" size="8"/>
+          <label for="freq_lo">Local Oscillator:</label>
+          <select id="freq_lo" name="freq_lo">
+              <option value="5150">5150</option>
+              <option value="5750">5750</option>
+              <option value="5950">5950</option>
+              <option value="9750">9750</option>
+              <option value="10000">10000</option>
+              <option value="10050">10050</option>
+              <option value="10450">10450</option>
+              <option value="10600">10600</option>
+              <option value="10700">10700</option>
+              <option value="10750">10750</option>
+              <option value="11250">11250</option>
+              <option value="11300">11300</option>
+          </select>
+        </li>
+        <li>
+          <label for="sr">Symbol rate:</label>
+          <input type="number" name="sr" id="sr" size="8"/>
+        </li>
+        <li>
+          <label for="pol">Polarization:</label>
+          <select id="pol" name="pol">
+              <option value="0">Horizontal</option>
+              <option value="1">Vertical</option>
+          </select>
+        </li>
+        <li>
+          <label for="tone">Tone:</label>
+          <select id="tone" name="tone" >
+              <option value="0">Off</option>
+              <option value="1">On</option>
+          </select>
+        </li>
+        <li>
+          <label for="dsq">DISEqC Port - command:</label>
+          <select name="dsq" id="dsq">
+            <option value="0">Off</option>
+            <optgroup label="1.0, up to 4 ports (one single 4x1 DiSEqC switch)">
+              <option value="E01038F0">01 - E01038F0</option>
+              <option value="E01038F4">02 - E01038F4</option>
+              <option value="E01038F8">03 - E01038F8</option>
+              <option value="E01038FC">04 - E01038FC</option>
+            </optgroup>
+            <optgroup label="1.1, up to 16 ports (8 uncommitted +8 committed)">
+              <optgroup label="UNCOMMITTED">
+                <option value="E01039F0">01 - E01039F0</option>
+                <option value="E01039F1">02 - E01039F1</option>
+                <option value="E01039F2">03 - E01039F2</option>
+                <option value="E01039F3">04 - E01039F3</option>
+                <option value="E01039F4">05 - E01039F4</option>
+                <option value="E01039F5">06 - E01039F5</option>
+                <option value="E01039F6">07 - E01039F6</option>
+                <option value="E01039F7">08 - E01039F7</option>
+              </optgroup>
+              <optgroup label="COMMITTED">
+                <option value="E01039F8">09 - E01039F8</option>
+                <option value="E01039F9">10 - E01039F9</option>
+                <option value="E01039FA">11 - E01039FA</option>
+                <option value="E01039FB">12 - E01039FB</option>
+                <option value="E01039FC">13 - E01039FC</option>
+                <option value="E01039FD">14 - E01039FD</option>
+                <option value="E01039FE">15 - E01039FE</option>
+                <option value="E01039FF">16 - E01039FF</option>
+              </optgroup>
+            </optgroup>
+          </select>
+        </li>
+        <li>
+          <label for="slnbe">3D converter polling:</label>
+          <select id="slnbe" name="slnbe" >
+              <option value="0">Disabled</option>
+              <option value="1">Enabled</option>
+          </select>
+        </li>
+      </ul>
+    </div>
       </div>
       <div class="col-8 col-s-9">
         <div id="fileName"></div>
         <div id="snrChart" style="width:100%;height:400px;"></div>
-        <div>
-          <hr>
-        </div>
+        <div><hr></div>
         <div id="voltageChart" style="width:100%;height:400px;"></div>
       </div>
       <div class="col-2 col-s-12">
-        <div class="aside">
-          <div class="list">
-            <ul>
-              <li>
-                <label for="setTime">Setting the time (min):</label>
-                <input type="number" name="setTime" id="setTime" size="6" />
-              </li>
-            </ul>
-          </div>
-          <div class="menu">
-            <ul>
-              <a id="startLink">
-                <li id="start">Start</li>
-              </a>
-              <a id="stopLink">
-                <li id="stop">Stop</li>
-              </a>
-              <a id="resetLink">
-                <li id="reset">Reset</li>
-              </a>
-              <a id="toJsonLink">
-                <li id="toJson">Export to json</li>
-              </a>
-              <a id="toXlsxLink">
-                <li id="toXlsx">Export to xlsx</li>
-              </a>
-              <label for="fileinput-snr">
-                <li>Open JSON <span id="fname"></span></li>
-              </label>
-              <input class="custom-file-input" type="file" id="fileinput-snr" />
-              <li class="modalBtn" id="helpLink">Help</li>
-              <!-- The Modal -->
-              <div id="trunkModalLnb" class="modal">
-                <!-- Modal content -->
-                <div class="modal-content">
-                  <span class="close">&times;</span>
-                  <h3>HELP</h3>
-                  <div class="modal-body" id="modal-help-snr"></div>
-                </div>
+    <div class="aside">
+      <div class="list">
+        <ul>
+          <li>
+            <label for="setTime">Setting the time (min):</label>
+            <input type="number" name="setTime" id="setTime" size="6"/>
+          </li>
+        </ul>
+      </div>
+      <div class="menu">
+        <ul>
+          <a id="startLink"><li id="start">Start</li></a>
+          <a id="stopLink"><li id="stop">Stop</li></a>
+          <a id="resetLink"><li id="reset">Reset</li></a>
+          <a id="toJsonLink"><li id="toJson">Export to json</li></a>
+          <a id="toXlsxLink"><li id="toXlsx">Export to xlsx</li></a>
+          <label for="fileinput-snr">
+              <li>Open JSON <span id="fname"></span></li>
+          </label>
+          <input class="custom-file-input" type="file" id="fileinput-snr" />
+          <li class="modalBtn" id="helpLink">Help</li>
+            <!-- The Modal -->
+            <div id="trunkModalLnb" class="modal">
+              <!-- Modal content -->
+              <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>HELP</h3>
+                <div class="modal-body" id="modal-help-snr"></div>
               </div>
-            </ul>
-          </div>
-          <p>FPS: <span id="fps"></span></p>
-          <div id="errorElem" class="success"></div>
-          <div id="infopanel" class="success">
-            <div id="logElem"></div>
-          </div>
-        </div>
+            </div>
+        </ul>
+      </div>
+      <p>FPS: <span id="fps"></span></p>
+      <div id="errorElem" class="success"></div>
+      <div id="infopanel" class="success">
+        <div id="logElem"></div>
+      </div>
+    </div>
       </div>
     </div>
   </div>

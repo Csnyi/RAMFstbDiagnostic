@@ -1,6 +1,5 @@
-if($(".createReport").hide()){
-
-  // defined global variables =============================================================
+if ($(".createReport").hide()){
+// defined global variables =============================================================
 let satList = [];
 let reportList = [];
 let reportListNew = [];
@@ -11,6 +10,7 @@ let ySnrData = [];
 let yLmsnrData = [];
 let yRssiData = [];
 let connMessages = document.getElementById('connMessage');
+let blindScanInfo = document.getElementById('responseScan');
 let logInfo = document.getElementById('logInfo');
 let logResponse = document.getElementById('response');
 let satName = "";
@@ -247,6 +247,7 @@ function startEventSource(url) {
                         returnReport(result)
                           .then(() => {
                               dataToDrawCharts();
+                              optionList("tpList", reportData);
                           })
                           .catch(err => {
                             logElem('returnReport: ' + err);
@@ -260,9 +261,25 @@ function startEventSource(url) {
                 }
                 
                 //-----------------------------------------------------------------------
-                // blindscan
-                if (response.tune_mode == 3) { 
-
+                // blindscan channel scanning
+                if (response.tune_mode == 4) { 
+                    if(response.channel_scan_progress < 100){
+                      let satName = $("#satList").children("option:selected").text();
+                      reportInProgress = true;
+                      modalScanOn();
+                      disablePageRefresh();
+                      $("#checkStatus").html(satName + " channel scan");
+                      progressBarScan.style.width = response.channel_scan_progress + '%';
+                      progressBarScan.textContent = response.channel_scan_progress + '%';
+                      //log('The report is being created.');
+                    }
+                    if(response.channel_scan_progress >= 100){
+                      let satName = $("#satList").children("option:selected").text();
+                      reportComplete();
+                      modalScanOff();
+                      stopEvent("The blindscan is complate!");
+                      blindInfo(satName + "<br>Found tp number: " + JSON.stringify(response.tp_num));
+                    }
                 }
                 //-----------------------------------------------------------------------
                 // standard events
@@ -721,6 +738,10 @@ function connMessage(msg) {
   connMessages.innerHTML = msg + '<br>';
 }
 
+function blindInfo(msg) {
+  blindScanInfo.innerHTML = msg + '<br>';
+}
+
 function logElem(msg) {
   logInfo.innerHTML = msg + '<br>';
 }
@@ -955,8 +976,31 @@ $(function(){
         $("#dsq").val(dsq);
     });
 
-    $(".snrSpectSw").click(function () {
+    $(".snrSpectSw").click(function(){
         $(".createReport, .initSmartSNR").toggle();
+    });
+
+    $("#blindscan").click(function(){
+        let satid = $("#satList").children("option:selected").val();
+        let freeOnly = $("#freeOnly").val();
+        let nit = $("#nit").val();
+        let channelType = $("#channelType").val();
+        let urlBlind = "http://" + localStorage['ip'] + "/public?command=scanChannels&sat_id="+satid+"&free_only="+freeOnly+"&nit=" + nit + "&channel_type=" + channelType + "&mode=blindscan";
+        fetch(urlBlind)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response is not correct.');
+            }
+            return response.json();
+          })
+          .then(data => {
+            //logElem(data);
+            startEventSource();
+          })
+          .catch(error => {
+            console.error('blindscan: ', error);
+            setProgressBar(100, "Network error!");
+          });
     });
 
 });
