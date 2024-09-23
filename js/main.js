@@ -1,10 +1,11 @@
-if ($(".createReport").hide()){
+if (true){// $(".createReport").hide()
 // defined global variables =============================================================
 let satList = [];
 let reportList = [];
 let reportListNew = [];
 let reportData = [];
-let snrData = [];
+let snrData = []; 
+let blindMsg = "";
 let xFreqData = [];
 let ySnrData = [];
 let yLmsnrData = [];
@@ -215,11 +216,13 @@ function startEventSource(url) {
                         startEventSource(url);
                     }, 500);
                 }
+
                 //-----------------------------------------------------------------------
                 // SNR
                 if (response.tune_mode == 0) { 
 
                 }
+
                 //-----------------------------------------------------------------------
                 // report generation
                 if (response.tune_mode == 2){
@@ -261,6 +264,33 @@ function startEventSource(url) {
                 }
                 
                 //-----------------------------------------------------------------------
+                // initSmart blindscan
+                blindMsg = "";
+                if (response.tune_mode == 3) {
+                    if (response.blind_scan_progress == 0) {
+                        blindMsg += "frequency found <br>";
+                    }
+                    if (response.blind_scan_progress == 1) {
+                        blindMsg += "Signal locked! <br>";
+                    }
+                    if (response.blind_scan_progress == 2) {
+                        blindMsg += "Signal not locked! <br>";
+                    }
+                    if (response.blind_scan_progress == 3) {
+                        blindMsg += "started <br>";
+                    }
+                    if (response.blind_scan_progress == 4) {
+                        eventSource.close();
+                        blindMsg += "Found tp number: " + response.tp_num + "<br>";  
+                    }
+                    if (response.blind_scan_progress == 6) {
+                        blindMsg += "search interrupted <br>";
+                    }
+                    $("#logElem").html(blindMsg);
+                    //response.tp_list.rf_frequency & response.tp_list.tp_sr
+                }
+
+                //-----------------------------------------------------------------------
                 // blindscan channel scanning
                 if (response.tune_mode == 4) { 
                     if(response.channel_scan_progress < 100){
@@ -278,7 +308,7 @@ function startEventSource(url) {
                       reportComplete();
                       modalScanOff();
                       stopEvent("The blindscan is complate!");
-                      blindInfo(satName + "<br>Found tp number: " + JSON.stringify(response.tp_num));
+                      blindInfo(satName + "<br>Found tp number: " + response.tp_num);
                     }
                 }
                 //-----------------------------------------------------------------------
@@ -361,10 +391,10 @@ function createReport(){
       });
 }
 
-/** Sends the initSmartSNR request to the STB.   */
-function initSmartSNR(){
-    var ip = localStorage.getItem("ip");
-
+/** Sends the initSmartSNR blindscan request to the STB.   */
+function initSmartSNR(mode){
+  $("#errorElem").html(`The blindscan has been started!`);
+  var ip = localStorage.getItem("ip");
   var freq = Number(document.getElementById("freq").value);
   var freq_lo = document.getElementById("freq_lo").value;
   var freq_if = (freq - freq_lo);
@@ -373,12 +403,12 @@ function initSmartSNR(){
   var tone = document.getElementById("tone").value;
   var dsq = document.getElementById("dsq").value;
   var slnbe = document.getElementById("slnbe").value;
-  tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
+  //tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
   var url = new URL('http://' + ip + '/public');
   var params = {
     command: 'initSmartSNR',
     state: 'on',
-    mode: 'snr',
+    mode: mode,
     freq: freq_if,
     sr: sr,
     pol: pol,
@@ -392,15 +422,16 @@ function initSmartSNR(){
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        return response.json();
+        return response;//.json();
       }).then(data => {
-          console.log('Successful setting:', data);
-          logElem(`The report has been started!`);
+          //console.log('Successful setting:', data);
+          $("#errorElem").html(`The blindscan request has completed!`);
           startEventSource();
       }).catch(error => {
-          console.error("createReport: ", error);
-          logElem(`<div class="alert">Network Error!</div>`);
-          setProgressBarErr(100, "Connection Error!")
+          console.error("blindscan: ", error);
+          $("#errorElem").html( "blindscan: " + error)
+          //logElem(`<div class="alert">Network Error!</div>`);
+          //setProgressBarErr(100, "Connection Error!")
           snrData = [];
       });
 };
@@ -1002,6 +1033,10 @@ $(function(){
             setProgressBar(100, "Network error!");
           });
     });
+
+    /*$("#initBlind").click(function(){
+        initSmartSNR('blindscan');
+    });*/
 
 });
 

@@ -24,6 +24,7 @@ let streamedData = {
     lnb_current: []
 };
 let eventSourceInterval;
+let blindMess = "";
 let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
@@ -45,7 +46,7 @@ function isValidIP(ip) {
   return ipPattern.test(ip);
 }
 
-function initSmartSNR() {
+function initSmartSNR(mode) {
   var ip = localStorage.getItem("ip");
   var freq = Number(document.getElementById("freq").value);
   var freq_lo = document.getElementById("freq_lo").value;
@@ -60,7 +61,7 @@ function initSmartSNR() {
   var params = {
     command: 'initSmartSNR',
     state: 'on',
-    mode: 'snr',
+    mode: mode,
     freq: freq_if,
     sr: sr,
     pol: pol,
@@ -81,7 +82,7 @@ function initSmartSNR() {
 
 // when "Start" button pressed
 
-function start() {
+function start(request) {
   if (eventSource) {
     eventSource.close();
     clearInterval(eventSourceInterval);
@@ -89,7 +90,7 @@ function start() {
 
   reset();
 
-  initSmartSNR();
+  request; //initSmartSNR();
 
   streamedData.tpVal = tpData; 
 
@@ -115,6 +116,22 @@ function start() {
     if(response.ret_code == undefined){
       if (response.scan_status) {
         logError("Connection status: "+response.scan_status);
+      }
+      else if (response.blind_scan_progress) {
+        if (response.blind_scan_progress == 0) {
+            blindMess = "Frequency found";
+        }else if (response.blind_scan_progress == 1) {
+            blindMess = "Signal locked.";
+        }else if (response.blind_scan_progress == 2) {
+            blindMess = "Signal not locked!";
+        }else if (response.blind_scan_progress == 3) {
+            blindMess = "Started.";
+        }else if (response.blind_scan_progress == 4) {
+            blindMess = "The blindscan is done.";
+        }else if (response.blind_scan_progress == 6) {
+            blindMess = "Search interrupted!";
+        }
+        logError(blindMess);
       }else{
         logError("Connection status: Locked");
       }
@@ -127,12 +144,33 @@ function start() {
       if ( response.ret_code == "STREAMING_ERR") logError("Busy by IPTV User");
       eventSource.close();
     }
-    for (let key in collectedData) {
-      if (response[key] !== undefined) {
-        collectedData[key].push(response[key]);
+    //-----------------------------------------------------------------------
+    // initSmart SNR mode
+    if (response.tune_mode == 0) { 
+      for (let key in collectedData) {
+        if (response[key] !== undefined) {
+          collectedData[key].push(response[key]);
+        }
       }
     }
+    
     fpsCounter++;
+    //-----------------------------------------------------------------------
+    // initSmart blindscan mode
+    if (response.tune_mode == 3) { 
+        if (response.blind_scan_progress == 4) {
+            eventSource.close();
+            clearInterval(eventSourceInterval);
+            $("#fpsSnr").html(0);
+            //log(JSON.stringify(response));
+            let tpList = "<br>The frequency is an intermediate frequency<br>";
+            for (let i=0; i<response.tp_num; i++){
+                tpList += "<br>" + (i+1) + " Frequency: " + response.tp_list[i].rf_frequency;
+                tpList += " sr: " + response.tp_list[i].tp_sr;
+            }
+            log("Found tp number: " + response.tp_num + tpList);
+        }
+    }
   });
   // Start interval timer to process data every second
   eventSourceInterval = setInterval(processData, 1000);
@@ -158,7 +196,7 @@ function stop() {
   if (eventSource.readyState == 1) {
     eventSource.close();
     clearInterval(eventSourceInterval);
-    $("#fps").html(0);
+    $("#fpsSnr").html(0);
     logError(`Request stopped!<br><br>
       Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
       Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
@@ -173,7 +211,7 @@ function reset() {
   logError("");
   log("");
   $("#fileName").html("");
-  $("#fps").html(0);
+  $("#fpsSnr").html(0);
   collectedData = {
     lock: [],
     snr: [],
@@ -206,7 +244,7 @@ function reset() {
 
 function processData() {
   if (collectedData.snr.length > 0) {
-    $("#fps").html(fpsCounter);
+    $("#fpsSnr").html(fpsCounter);
 
     let infoLock = lockInfo(collectedData.lock);
     let avgSnr = average(collectedData.snr);
@@ -439,11 +477,15 @@ $(function () {
   toggleModal();
 
   // handling buttons
-  $("#startLink").click(function () {
-    start();
+  $("#startBlindLink").click(function(){
+    start(initSmartSNR('blindscan'));
   });
 
-  $("#stopLink").click(function () {
+  $("#startSnrLink").click(function () {
+    start(initSmartSNR('snr'));
+  });
+
+  $("#stopSnrLink").click(function () {
     stop();
   });
 
