@@ -82,7 +82,7 @@ function initSmartSNR(mode) {
 
 // when "Start" button pressed
 
-function start(request) {
+function start(mode) {
   if (eventSource) {
     eventSource.close();
     clearInterval(eventSourceInterval);
@@ -90,7 +90,7 @@ function start(request) {
 
   reset();
 
-  request; //initSmartSNR();
+  initSmartSNR(mode);
 
   streamedData.tpVal = tpData; 
 
@@ -478,11 +478,11 @@ $(function () {
 
   // handling buttons
   $("#startBlindLink").click(function(){
-    start(initSmartSNR('blindscan'));
+    start('blindscan');
   });
 
   $("#startSnrLink").click(function () {
-    start(initSmartSNR('snr'));
+    start('snr');
   });
 
   $("#stopSnrLink").click(function () {
