@@ -34,7 +34,7 @@ var modalBody = `
         We welcome all observations and comments.
     </p>
     <p>
-        The project is available: <a href="https://github.com/Csnyi/RamfReportSnr" target="_blank">GitHub</a>.
+        The project is available: <a href="https://github.com/Csnyi/RAMFstbDiagnostic.git" target="_blank">GitHub</a>.
     </p>
 `;
 
