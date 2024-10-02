@@ -1,5 +1,5 @@
 /* The Modal (background) */
-.modal, .modal-scan {
+.modal, .modalDt, .modal-scan {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
@@ -13,7 +13,7 @@
 }
 
 /* The Close Button */
-.close {
+.close, .closeDt {
   color: #aaa;
   float: right;
   font-size: 28px;
@@ -21,7 +21,9 @@
 }
 
 .close:hover,
-.close:focus {
+.close:focus,
+.closeDt:hover,
+.closeDt:focus {
   color: black;
   text-decoration: none;
   cursor: pointer;

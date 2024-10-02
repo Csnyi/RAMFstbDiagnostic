@@ -1,17 +1,13 @@
-if (true){// $(".createReport").hide()
+//if($(".createReport").hide()){
 // defined global variables =============================================================
-let satList = [];
 let reportList = [];
 let reportListNew = [];
 let reportData = [];
-let snrData = []; 
-let blindMsg = "";
 let xFreqData = [];
 let ySnrData = [];
 let yLmsnrData = [];
 let yRssiData = [];
 let connMessages = document.getElementById('connMessage');
-let blindScanInfo = document.getElementById('responseScan');
 let logInfo = document.getElementById('logInfo');
 let logResponse = document.getElementById('response');
 let satName = "";
@@ -128,7 +124,7 @@ function getVersion() {
         $(".conn").toggle();
         $(".createReport").toggle();
         // chart initialisation
-        initPlot();
+        initPlotCr();
         // load Satellite list and Report list
         returnSatList();
         // report list and drow graphs when load page
@@ -168,7 +164,7 @@ function startEventSource(url) {
         eventSource = new EventSource(url);
         eventSource.onerror = function (e) {
             if (this.readyState == EventSource.CONNECTING) {
-                console.log("Reconnecting (readyState=${this.readyState})...");
+                console.log(`Reconnecting (readyState=${this.readyState})...`);
             }
             else {
                 console.log("Error has occured. ");
@@ -216,15 +212,13 @@ function startEventSource(url) {
                         startEventSource(url);
                     }, 500);
                 }
-
                 //-----------------------------------------------------------------------
                 // SNR
                 if (response.tune_mode == 0) { 
 
                 }
-
                 //-----------------------------------------------------------------------
-                // report generation
+                // report generation / createReport
                 if (response.tune_mode == 2){
                   //console.log(response.scan_progress);
                     if (response.scan_progress < 100) {
@@ -234,7 +228,7 @@ function startEventSource(url) {
                       $("#checkStatus").html("All transponder signal check");
                       progressBarScan.style.width = response.scan_progress + '%';
                       progressBarScan.textContent = response.scan_progress + '%';
-                      log('The report is being created.');
+                      logResp('The report is being created.');
                     }
           
                     if( response.scan_progress >= 100 ){
@@ -250,7 +244,6 @@ function startEventSource(url) {
                         returnReport(result)
                           .then(() => {
                               dataToDrawCharts();
-                              optionList("tpList", reportData);
                           })
                           .catch(err => {
                             logElem('returnReport: ' + err);
@@ -264,52 +257,9 @@ function startEventSource(url) {
                 }
                 
                 //-----------------------------------------------------------------------
-                // initSmart blindscan
-                blindMsg = "";
-                if (response.tune_mode == 3) {
-                    if (response.blind_scan_progress == 0) {
-                        blindMsg += "frequency found <br>";
-                    }
-                    if (response.blind_scan_progress == 1) {
-                        blindMsg += "Signal locked! <br>";
-                    }
-                    if (response.blind_scan_progress == 2) {
-                        blindMsg += "Signal not locked! <br>";
-                    }
-                    if (response.blind_scan_progress == 3) {
-                        blindMsg += "started <br>";
-                    }
-                    if (response.blind_scan_progress == 4) {
-                        eventSource.close();
-                        blindMsg += "Found tp number: " + response.tp_num + "<br>";  
-                    }
-                    if (response.blind_scan_progress == 6) {
-                        blindMsg += "search interrupted <br>";
-                    }
-                    $("#logElem").html(blindMsg);
-                    //response.tp_list.rf_frequency & response.tp_list.tp_sr
-                }
+                // blindscan
+                if (response.tune_mode == 3) { 
 
-                //-----------------------------------------------------------------------
-                // blindscan channel scanning
-                if (response.tune_mode == 4) { 
-                    if(response.channel_scan_progress < 100){
-                      let satName = $("#satList").children("option:selected").text();
-                      reportInProgress = true;
-                      modalScanOn();
-                      disablePageRefresh();
-                      $("#checkStatus").html(satName + " channel scan");
-                      progressBarScan.style.width = response.channel_scan_progress + '%';
-                      progressBarScan.textContent = response.channel_scan_progress + '%';
-                      //log('The report is being created.');
-                    }
-                    if(response.channel_scan_progress >= 100){
-                      let satName = $("#satList").children("option:selected").text();
-                      reportComplete();
-                      modalScanOff();
-                      stopEvent("The blindscan is complate!");
-                      blindInfo(satName + "<br>Found tp number: " + response.tp_num);
-                    }
                 }
                 //-----------------------------------------------------------------------
                 // standard events
@@ -391,10 +341,10 @@ function createReport(){
       });
 }
 
-/** Sends the initSmartSNR blindscan request to the STB.   */
-function initSmartSNR(mode){
-  $("#errorElem").html(`The blindscan has been started!`);
-  var ip = localStorage.getItem("ip");
+/** Sends the initSmartSNR request to the STB.   */
+function initSmartSNR(){
+    var ip = localStorage.getItem("ip");
+
   var freq = Number(document.getElementById("freq").value);
   var freq_lo = document.getElementById("freq_lo").value;
   var freq_if = (freq - freq_lo);
@@ -403,12 +353,12 @@ function initSmartSNR(mode){
   var tone = document.getElementById("tone").value;
   var dsq = document.getElementById("dsq").value;
   var slnbe = document.getElementById("slnbe").value;
-  //tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
+  tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
   var url = new URL('http://' + ip + '/public');
   var params = {
     command: 'initSmartSNR',
     state: 'on',
-    mode: mode,
+    mode: 'snr',
     freq: freq_if,
     sr: sr,
     pol: pol,
@@ -422,17 +372,15 @@ function initSmartSNR(mode){
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        return response;//.json();
+        return response.json();
       }).then(data => {
-          //console.log('Successful setting:', data);
-          $("#errorElem").html(`The blindscan request has completed!`);
+          console.log('Successful setting:', data);
+          logElem(`The report has been started!`);
           startEventSource();
       }).catch(error => {
-          console.error("blindscan: ", error);
-          $("#errorElem").html( "blindscan: " + error)
-          //logElem(`<div class="alert">Network Error!</div>`);
-          //setProgressBarErr(100, "Connection Error!")
-          snrData = [];
+          console.error("createReport: ", error);
+          logElem(`<div class="alert">Network Error!</div>`);
+          setProgressBarErr(100, "Connection Error!");
       });
 };
 
@@ -616,7 +564,7 @@ async function returnReport(reportName) {
 }
 
 // charts
-function initPlot() {
+function initPlotCr() {
     Plotly.newPlot('reportCnr', [{
         x: [],
         y: [],
@@ -665,7 +613,7 @@ function initPlot() {
     });
 }
 
-function updateChart(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
+function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
   
     Plotly.react('reportCnr', [{
         x: xFreqData,
@@ -721,7 +669,6 @@ function drawGraphs() {
         returnReport(reportName)
             .then(() => {
               dataToDrawCharts();
-              optionList("tpList", reportData);
             })
             .catch(err => {
               console.error('returnReport:', err);
@@ -731,12 +678,12 @@ function drawGraphs() {
 }
 
 function dataToDrawCharts() {
-    reportData.common_param.forEach(e => xFreqData.push(`${e.freq}MHz - Flow rate: ${e.sr} - Pol.: ${e.polarity} <br> Broadcast standard: ${e.nim_type} - FEC: ${e.fec}<br> Signal mod.: ${e.mod} - Transponder test: ${e.result}`));
+    reportData.common_param.forEach(e => xFreqData.push(`${e.freq}MHz - Flow rate: ${e.sr} - Pol.: ${e.polarity} <br> Carrier offset: ${e.offset} - Broadcast standard: ${e.nim_type} - FEC: ${e.fec}<br> Signal mod.: ${e.mod} - Transponder test: ${e.result}`));
     reportData.common_param.forEach(e => ySnrData.push(e.cnr));
     reportData.common_param.forEach(e => yLmsnrData.push(e.lm_cnr));
     reportData.common_param.forEach(e => yRssiData.push(e.rssi));
     satName = reportData.sat_name;
-    updateChart(xFreqData, ySnrData, yLmsnrData, yRssiData, satName);
+    updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName);
     logElem("Date: " + reportData.date);
     let convType = reportData.lnb_info.type;
     if (convType == 0) convType = 'standard';
@@ -753,7 +700,7 @@ function dataToDrawCharts() {
     if (dsq11 == 0) dsq11 = 'disabled';
     let tone = reportData.lnb_info.tone;
     (tone == 0) ? tone = 'off' : tone = 'on';
-    log(`Satellite position: ${reportData.sat_position} <br> 
+    logResp(`Satellite position: ${reportData.sat_position} <br> 
         Satellite name: ${satName} <br> <br>
         Settings: <br>
         Converter type: ${convType} <br>
@@ -762,6 +709,7 @@ function dataToDrawCharts() {
         DSQ1.1: ${dsq11} <br>
         Tone: ${tone}
       `);
+      optionList("tpList", reportData);
 }
 
 // information handling
@@ -769,15 +717,11 @@ function connMessage(msg) {
   connMessages.innerHTML = msg + '<br>';
 }
 
-function blindInfo(msg) {
-  blindScanInfo.innerHTML = msg + '<br>';
-}
-
 function logElem(msg) {
   logInfo.innerHTML = msg + '<br>';
 }
 
-function log(msg) {
+function logResp(msg) {
   logResponse.innerHTML = msg + '<br>';
 }
 
@@ -865,14 +809,13 @@ function readSpectrumJson() {
       yRssiData = [];
       resetLog();
       dataToDrawCharts();
-      optionList("tpList", reportData);
 
   }, false); 
 };
 
 function resetLog() {
   logElem("");
-  log("");
+  logResp("");
 }
 
 // exportJson: function to download collected data as JSON
@@ -907,21 +850,21 @@ function exportJson() {
 
 // Json load handling
 
-let fileInput = document.getElementById("fileinput-cr");
+let fileInputCr = document.getElementById("fileinput-cr");
 
-fileInput.addEventListener("click", function () {
-  initPlot();
+fileInputCr.addEventListener("click", function () {
+  initPlotCr();
   resetLog();
-  if (fileInput.files.length > 0) {
-    handleFile(fileInput.files[0]);
+  if (fileInputCr.files.length > 0) {
+    handleFile(fileInputCr.files[0]);
   }
 });
 
-fileInput.addEventListener("change", function () {
-  initPlot();
+fileInputCr.addEventListener("change", function () {
+  initPlotCr();
   resetLog();
-  if (fileInput.files.length > 0) {
-    handleFile(fileInput.files[0]);
+  if (fileInputCr.files.length > 0) {
+    handleFile(fileInputCr.files[0]);
   } else {
     logElem("No JSON selected!");
   }
@@ -945,7 +888,7 @@ $(function(){
     getVersion();
 
     $('#ipBtn').click(function () {
-        initPlot();
+        initPlotCr();
         resetLog();
         $('#fps').html('');
         $('#status').html('');        
@@ -956,14 +899,14 @@ $(function(){
     })
     // Event listener for the dir_list
     $("#dirList").change(function() {
-        initPlot();
+        initPlotCr();
         resetLog();
         drawGraphs();
     });
 
     $("#createReportBtn").click(function(){
         setProgressBar(50, 'Report starting...');
-        initPlot();
+        initPlotCr();
         resetLog();
         $("#fps").html('');
         $("#status").html('');
@@ -995,7 +938,7 @@ $(function(){
         }
         $("#pol").val(pol);
         $("#tone").val(reportData.lnb_info.tone);
-        let dsq = 0;
+        let dsq = "";
         if(reportData.lnb_info["dsq1.0_port"] != 0){
           let dsqId = reportData.lnb_info["dsq1.0_port"];
           dsq = dsqObj.dsq10_port[dsqId];
@@ -1005,39 +948,14 @@ $(function(){
           dsq = dsqObj.dsq11_port[dsqId];
         }
         $("#dsq").val(dsq);
+        initPlotSnr();
     });
 
-    $(".snrSpectSw").click(function(){
+    $(".snrSpectSw").click(function () {
         $(".createReport, .initSmartSNR").toggle();
+        initPlotSnr();
     });
-
-    $("#blindscan").click(function(){
-        let satid = $("#satList").children("option:selected").val();
-        let freeOnly = $("#freeOnly").val();
-        let nit = $("#nit").val();
-        let channelType = $("#channelType").val();
-        let urlBlind = "http://" + localStorage['ip'] + "/public?command=scanChannels&sat_id="+satid+"&free_only="+freeOnly+"&nit=" + nit + "&channel_type=" + channelType + "&mode=blindscan";
-        fetch(urlBlind)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response is not correct.');
-            }
-            return response.json();
-          })
-          .then(data => {
-            //logElem(data);
-            startEventSource();
-          })
-          .catch(error => {
-            console.error('blindscan: ', error);
-            setProgressBar(100, "Network error!");
-          });
-    });
-
-    /*$("#initBlind").click(function(){
-        initSmartSNR('blindscan');
-    });*/
 
 });
 
-}
+//}

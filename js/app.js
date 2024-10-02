@@ -1,6 +1,7 @@
-let eventSource;
+let eventSourceSnr;
 let collectedData = {
     lock: [],
+    carrier_offset: [],
     snr: [],
     lm_snr: [],
     lnb_voltage: [],
@@ -11,9 +12,10 @@ let collectedData = {
     lnb_current: []
 };
 let streamedData = {
-    tpVal: "",
+    tpVal: [],
     timestamp: [],
     lock: [],
+    carrier_offset: [],
     snr: [],
     lm_snr: [],
     lnb_voltage: [],
@@ -23,8 +25,7 @@ let streamedData = {
     gamma: [],
     lnb_current: []
 };
-let eventSourceInterval;
-let blindMess = "";
+let eventSourceSnrInterval;
 let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
@@ -46,7 +47,7 @@ function isValidIP(ip) {
   return ipPattern.test(ip);
 }
 
-function initSmartSNR(mode) {
+function initSmartSNR() {
   var ip = localStorage.getItem("ip");
   var freq = Number(document.getElementById("freq").value);
   var freq_lo = document.getElementById("freq_lo").value;
@@ -61,7 +62,7 @@ function initSmartSNR(mode) {
   var params = {
     command: 'initSmartSNR',
     state: 'on',
-    mode: mode,
+    mode: 'snr',
     freq: freq_if,
     sr: sr,
     pol: pol,
@@ -75,145 +76,110 @@ function initSmartSNR(mode) {
   xhr.send();
   xhr.onerror = function() { 
     logError(`<div class="alert">Network Error!</div>`);
-    clearInterval(eventSourceInterval);
+    clearInterval(eventSourceSnrInterval);
     log("");
   };
 }
 
 // when "Start" button pressed
 
-function start(mode) {
-  if (eventSource) {
-    eventSource.close();
-    clearInterval(eventSourceInterval);
+function start() {
+  if (eventSourceSnr) {
+    eventSourceSnr.close();
+    clearInterval(eventSourceSnrInterval);
   }
 
   reset();
 
-  initSmartSNR(mode);
+  initSmartSNR();
 
-  streamedData.tpVal = tpData; 
+  //streamedData.tpVal = tpData; 
 
   let ip = localStorage.getItem("ip");
-  eventSource = new EventSource(`http://${ip}/public?command=startEvents`);
+  eventSourceSnr = new EventSource(`http://${ip}/public?command=startEvents`);
 
-  eventSource.onerror = function(e) {
-    if (this.readyState != EventSource.CONNECTING) {
-      clearInterval(eventSourceInterval);
+  eventSourceSnr.onerror = function(e) {
+    if (this.readyState != eventSourceSnr.CONNECTING) {
+      clearInterval(eventSourceSnrInterval);
       logError(`<div class="alert">A connection error occurred.</div>`);
-      eventSource.close(); 
+      eventSourceSnr.close(); 
       log("Reconnection");
       setTimeout(() => start(), 1000);  
     }
   };
   
-  if (eventSource.readyState == 0) {
+  if (eventSourceSnr.readyState == 0) {
     logError(`Connecting...`);
   }
 
-  eventSource.addEventListener('update', function(e) { 
+  eventSourceSnr.addEventListener('update', function(e) { 
     let response = JSON.parse(e.data);
     if(response.ret_code == undefined){
       if (response.scan_status) {
         logError("Connection status: "+response.scan_status);
-      }
-      else if (response.blind_scan_progress) {
-        if (response.blind_scan_progress == 0) {
-            blindMess = "Frequency found";
-        }else if (response.blind_scan_progress == 1) {
-            blindMess = "Signal locked.";
-        }else if (response.blind_scan_progress == 2) {
-            blindMess = "Signal not locked!";
-        }else if (response.blind_scan_progress == 3) {
-            blindMess = "Started.";
-        }else if (response.blind_scan_progress == 4) {
-            blindMess = "The blindscan is done.";
-        }else if (response.blind_scan_progress == 6) {
-            blindMess = "Search interrupted!";
-        }
-        logError(blindMess);
       }else{
         logError("Connection status: Locked");
       }
     }
     if (response.ret_code != null) {
-      clearInterval(eventSourceInterval);
+      clearInterval(eventSourceSnrInterval);
       if ( response.ret_code == "KEY_PRESSED_ERR") logError("Busy by TV User");
       if ( response.ret_code == "ONE_CLIENT_ALLOWED_ERR") logError("Busy by APP User");
       if ( response.ret_code == "STB_BUSY_ERR") logError("Operation is not finished");
       if ( response.ret_code == "STREAMING_ERR") logError("Busy by IPTV User");
-      eventSource.close();
+      eventSourceSnr.close();
     }
-    //-----------------------------------------------------------------------
-    // initSmart SNR mode
-    if (response.tune_mode == 0) { 
-      for (let key in collectedData) {
-        if (response[key] !== undefined) {
-          collectedData[key].push(response[key]);
-        }
+    for (let key in collectedData) {
+      if (response[key] !== undefined) {
+        collectedData[key].push(response[key]);
       }
     }
-    
     fpsCounter++;
-    //-----------------------------------------------------------------------
-    // initSmart blindscan mode
-    if (response.tune_mode == 3) { 
-        if (response.blind_scan_progress == 4) {
-            eventSource.close();
-            clearInterval(eventSourceInterval);
-            $("#fpsSnr").html(0);
-            //log(JSON.stringify(response));
-            let tpList = "<br>The frequency is an intermediate frequency<br>";
-            for (let i=0; i<response.tp_num; i++){
-                tpList += "<br>" + (i+1) + " Frequency: " + response.tp_list[i].rf_frequency;
-                tpList += " sr: " + response.tp_list[i].tp_sr;
-            }
-            log("Found tp number: " + response.tp_num + tpList);
-        }
-    }
   });
   // Start interval timer to process data every second
-  eventSourceInterval = setInterval(processData, 1000);
+  eventSourceSnrInterval = setInterval(processData, 1000);
 }
 
 // when "Stop" button pressed
 function stop() { 
-  if (eventSource == undefined) {
+  if (eventSourceSnr == undefined) {
      logError(`<p class="warn">No request!</p>`);
-  }
+  }else{
 
-  if (eventSource.readyState == 2) {
-    if (streamedData.timestamp.length > 0) {  
+    if (eventSourceSnr.readyState == 2) {
+      if (streamedData.timestamp.length > 0) {  
+        logError(`Request stopped!<br><br>
+          Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
+          Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
+        `);
+      }else{
+        logError(`<p class="warn">No request!</p>`);
+      }
+    }
+
+    if (eventSourceSnr.readyState == 1) {
+      eventSourceSnr.close();
+      clearInterval(eventSourceSnrInterval);
+      $("#fpsSnr").html(0);
       logError(`Request stopped!<br><br>
         Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
         Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
       `);
-    }else{
-      logError(`<p class="warn">No request!</p>`);
     }
-  }
 
-  if (eventSource.readyState == 1) {
-    eventSource.close();
-    clearInterval(eventSourceInterval);
-    $("#fpsSnr").html(0);
-    logError(`Request stopped!<br><br>
-      Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
-      Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
-    `);
   }
-
 }
 
 // when "Reset" button pressed
 function reset() {
-  initPlot();
+  initPlotSnr();
   logError("");
   log("");
   $("#fileName").html("");
   $("#fpsSnr").html(0);
   collectedData = {
     lock: [],
+    carrier_offset: [],
     snr: [],
     lm_snr: [],
     lnb_voltage: [],
@@ -224,9 +190,10 @@ function reset() {
     lnb_current: []
   };
   streamedData = {
-    tpVal: "",
+    tpVal: [],
     timestamp: [],
     lock: [],
+    carrier_offset: [],
     snr: [],
     lm_snr: [],
     lnb_voltage: [],
@@ -247,6 +214,7 @@ function processData() {
     $("#fpsSnr").html(fpsCounter);
 
     let infoLock = lockInfo(collectedData.lock);
+    let avgCarrierOffset = average(collectedData.carrier_offset);
     let avgSnr = average(collectedData.snr);
     let avgLmSnr = average(collectedData.lm_snr);
     let avgLnbVoltage = average(collectedData.lnb_voltage, 0);
@@ -259,7 +227,9 @@ function processData() {
     //data to json end xlsx
     let timeStamp = new Date().getTime();
     streamedData.timestamp.push(timeStamp);
+    streamedData.tpVal.push(tpData);
     streamedData.lock.push(average(collectedData.lock));
+    streamedData.carrier_offset.push(avgCarrierOffset);
     streamedData.snr.push(avgSnr);
     streamedData.lm_snr.push(avgLmSnr);
     streamedData.lnb_voltage.push(avgLnbVoltage);
@@ -280,13 +250,15 @@ function processData() {
       Alfa: ${avgAlfa}°, <br>
       Beta: ${avgBeta}°, <br>
       Gamma: ${avgGamma}°, <br>
-      LNB Current: ${avgLnbCurrent} mA 
+      LNB Current: ${avgLnbCurrent} mA <br>
+      Carrier Offset: ${(avgCarrierOffset/1000).toFixed(1)} MHz
     </div>`);
     
-    updateChart(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage); // Update the chart with the new average values
+    updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage); // Update the chart with the new average values
 
     // Clear the collected data for the processed keys
     collectedData.lock = [];
+    collectedData.carrier_offset = [];
     collectedData.snr = [];
     collectedData.lm_snr = [];
     collectedData.lnb_voltage = [];
@@ -381,7 +353,7 @@ function logError(msg) {
 }
 
 // update the graph with data every second 
-function updateChart(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage) {
+function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage) {
   const now = new Date();
   const nowZone = now.getTimezoneOffset();
   const timeLine = new Date(now.getTime()-(nowZone*60*1000)).toISOString(); // Use toISOString for time label
@@ -411,7 +383,7 @@ function updateChart(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage) {
 }
 
 // Initialize the chart
-function initPlot() {
+function initPlotSnr() {
   Plotly.newPlot('snrChart', [{
     x: [],
     y: [],
@@ -471,21 +443,17 @@ $(function () {
   reset();
 
   // Initialize the chart when the page loads
-  initPlot();
+  initPlotSnr();
 
   // handling modal
   toggleModal();
 
   // handling buttons
-  $("#startBlindLink").click(function(){
-    start('blindscan');
+  $("#startLink").click(function () {
+    start();
   });
 
-  $("#startSnrLink").click(function () {
-    start('snr');
-  });
-
-  $("#stopSnrLink").click(function () {
+  $("#stopLink").click(function () {
     stop();
   });
 

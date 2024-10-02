@@ -58,8 +58,7 @@ var modalHelpCr = `
         </tr>
         <tr>
             <td>
-                Report a satellite and revisit the data if you want! <br>
-                Search for transponders (blindscan) on the satellite.
+                Make a report and look at the data again if you like!
             </td>
         </tr>
         <tr>
@@ -69,7 +68,6 @@ var modalHelpCr = `
         </tr>
         <tr> 
             <td>
-                Select an item from the Report list and the data will be displayed.
             </td>
         </tr>
         <tr>
@@ -79,7 +77,6 @@ var modalHelpCr = `
         </tr>
         <tr>
             <td>
-                You can query the SNR data in the SNR view by choosing from the tp list.
             </td>
         </tr>
     </table>

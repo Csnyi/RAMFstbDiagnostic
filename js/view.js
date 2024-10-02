@@ -70,6 +70,8 @@ function readJson() {
         let detailsGamma = detailsData(allData.gamma, '°');
         let detailsLock = allData.lock.map(e=>(e==1)?e='Locked':e='Not locked');
         let detailsLnb = detailsData(allData.lnb_current, ' mA');
+        let CarrOffMega = allData.carrier_offset.map(e=>(e/1000));
+        let detailsCarrOff = detailsData(CarrOffMega, ' MHz');
 
         log(`<div class="content"> 
             Data: ${allData.alfa.length} <br>
@@ -77,67 +79,77 @@ function readJson() {
             To: ${new Date(allData.timestamp[allData.timestamp.length-1]).toLocaleString()} <br><br>
             <div class="menu">
                 <ul>
-                    <li class="modalBtn" id="modalBtnAlfa">Alfa: ${allData.alfa[0]}°</li>
+                    <li class="modalBtnDt" id="modalBtnAlfa">Alfa: ${allData.alfa[0]}°</li>
                         <!-- The Modal -->
-                        <div id="trunkModalAlfa" class="modal">
+                        <div id="trunkModalAlfa" class="modalDt">
                           <!-- Modal content -->
                           <div class="modal-content">
-                            <span class="close">&times;</span>
+                            <span class="closeDt">&times;</span>
                             <h3>Alfa:</h3>
                             <table id="datalist0" class="display datalist" style="width:100%"></table>
                           </div>
                         </div>
-                    <li class="modalBtn" id="modalBtnBeta">Beta: ${allData.beta[0]}°</li>
+                    <li class="modalBtnDt" id="modalBtnBeta">Beta: ${allData.beta[0]}°</li>
                         <!-- The Modal -->
-                        <div id="trunkModalBeta" class="modal">
+                        <div id="trunkModalBeta" class="modalDt">
                           <!-- Modal content -->
                           <div class="modal-content">
-                            <span class="close">&times;</span>
+                            <span class="closeDt">&times;</span>
                             <h3>Beta:</h3>
                             <table id="datalist1" class="display datalist" style="width:100%"></table>
                           </div>
                         </div>
-                    <li class="modalBtn" id="modalBtnGamma">Gamma: ${allData.gamma[0]}°</li>
+                    <li class="modalBtnDt" id="modalBtnGamma">Gamma: ${allData.gamma[0]}°</li>
                         <!-- The Modal -->
-                        <div id="trunkModalGamma" class="modal">
+                        <div id="trunkModalGamma" class="modalDt">
                           <!-- Modal content -->
                           <div class="modal-content">
-                            <span class="close">&times;</span>
+                            <span class="closeDt">&times;</span>
                             <h3>Gamma:</h3>
                             <table id="datalist2" class="display datalist" style="width:100%"></table>
                           </div>
                         </div>
-                    <li class="modalBtn" id="modalBtnLock">Lock: ${detailsLock[0]}</li>
+                    <li class="modalBtnDt" id="modalBtnLock">Lock: ${detailsLock[0]}</li>
                         <!-- The Modal -->
-                        <div id="trunkModalLock" class="modal">
+                        <div id="trunkModalLock" class="modalDt">
                           <!-- Modal content -->
                           <div class="modal-content">
-                            <span class="close">&times;</span>
+                            <span class="closeDt">&times;</span>
                             <h3>Lock:</h3>
                             <table id="datalist3" class="display datalist" style="width:100%"></table>
                           </div>
                         </div>
-                    <li class="modalBtn" id="modalBtnLnb">LNB Current: ${allData.lnb_current[0]} mA</li>
+                    <li class="modalBtnDt" id="modalBtnLnb">LNB Current: ${allData.lnb_current[0]} mA</li>
                         <!-- The Modal -->
-                        <div id="trunkModalLnb" class="modal">
+                        <div id="trunkModalLnb" class="modalDt">
                           <!-- Modal content -->
                           <div class="modal-content">
-                            <span class="close">&times;</span>
+                            <span class="closeDt">&times;</span>
                             <h3>LNB current:</h3>
                             <table id="datalist4" class="display datalist" style="width:100%"></table>
+                          </div>
+                        </div>
+                    <li class="modalBtnDt" id="modalBtnCo">Carrier offset: ${CarrOffMega[0].toFixed(2)} MHz</li>
+                        <!-- The Modal -->
+                        <div id="trunkModalCo" class="modalDt">
+                          <!-- Modal content -->
+                          <div class="modal-content">
+                            <span class="closeDt">&times;</span>
+                            <h3>Carrier offset:</h3>
+                            <table id="datalist5" class="display datalist" style="width:100%"></table>
                           </div>
                         </div>
                 </ul>
             </div>
         </div>`);
 
-        const dataSets = [detailsAlfa, detailsBeta, detailsGamma, detailsLock, detailsLnb];
+        const dataSets = [detailsAlfa, detailsBeta, detailsGamma, detailsLock, detailsLnb, detailsCarrOff];
         const dataSet = dataSets.map(data => data.map((value, index) => [value, new Date(allData.timestamp[index]).toLocaleString()]));
 
         initDataTables(dataSet);
         
         logError(`Processing of the file is complete! <br>
-            <div class="warn">Press the reset button before taking another measure!</div>
+            <div class="success">Transponder: ${allData.tpVal[0]}</div>
         `);
 
         toggleModal();
@@ -178,12 +190,11 @@ function initDataTables(dataSet) {
 // modal handling
 function toggleModal(){
     // Get the modal
-    var modals = document.querySelectorAll(".modal");
+    var modals = document.querySelectorAll(".modalDt");
     // Get the button that opens the modal
-    var btns = document.querySelectorAll(".modalBtn");
-    
+    var btns = document.querySelectorAll(".modalBtnDt");
     // Get the <span> element that closes the modal
-    var spans = document.querySelectorAll(".close");
+    var spans = document.querySelectorAll(".closeDt");
   
     // Set up event listener for 'esc' key press
     document.addEventListener("keydown", function(event) {
@@ -233,7 +244,7 @@ let timeZone = new Date().getTimezoneOffset();
 function convertTimestamps(timestamps, tpval, lock) {
     let lockLine = lock.map(e => (e === 1) ? 'Locked' : 'Not locked');
     let timeLine = timestamps.map(ts => new Date(ts-(timeZone*60*1000)).toISOString());
-    return timeLine.map((value, index) => `${value} - ${tpval} - ${lockLine[index]}`);
+    return timeLine.map((value, index) => `${value} - ${tpval[index]} - ${lockLine[index]}`);
 }
   
   // Update the charts with new data
@@ -290,19 +301,19 @@ function updateChartJson(data) {
 }
 
 
-let fileInput = document.getElementById("fileinput-snr");
+let fileInputSnr = document.getElementById("fileinput-snr");
 
-fileInput.addEventListener("click", function () {
+fileInputSnr.addEventListener("click", function () {
     reset();
-    if (fileInput.files.length > 0) {
-        handleFile(fileInput.files[0]);
+    if (fileInputSnr.files.length > 0) {
+        handleFile(fileInputSnr.files[0]);
     }
 });
 
-fileInput.addEventListener("change", function () {
+fileInputSnr.addEventListener("change", function () {
     reset();
-    if (fileInput.files.length > 0) {
-        handleFile(fileInput.files[0]);
+    if (fileInputSnr.files.length > 0) {
+        handleFile(fileInputSnr.files[0]);
     } else {
         logError("No JSON selected!");
     }
