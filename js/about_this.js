@@ -1,6 +1,6 @@
 var modalHeader = `
     <h3>    
-        About SNR Report with sr-525hd
+        About Diagnostics with sr-525hd
     </h3>
 `;
 
@@ -34,7 +34,8 @@ var modalBody = `
         We welcome all observations and comments.
     </p>
     <p>
-        The project is available: <a href="https://github.com/Csnyi/RAMFstbDiagnostic.git" target="_blank">GitHub</a>.
+        The project is available: <a href="https://github.com/Csnyi/RAMFstbDiagnostic" target="_blank">GitHub</a>. <br>
+        More information: <a href="https://csnyi.github.io/RAMFstbDiagnostic/" target="_blank">Docs</a>
     </p>
 `;
 
