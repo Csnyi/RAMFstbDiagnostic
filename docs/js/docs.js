@@ -42,14 +42,14 @@ var content = {
         I am lorem ipsum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`
     ],
     galleryText:[
-        `It's beautiful!`,
-        `And amezing!1`,
-        `And amezing!2`,
-        `And amezing!3`,
-        `And amezing!4`,
-        `And amezing!5`,
-        `And amezing!6`,
-        `And amezing!7`
+        `Home - report diagram`,
+        `Satellite list`,
+        `Report list`,
+        `Transponder list`,
+        `SNR parameters`,
+        `Runing report`,
+        `Open`,
+        `Saved report view`
     ]
 }
 
