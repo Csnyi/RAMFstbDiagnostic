@@ -441,13 +441,7 @@ function initPlotSnr() {
 $(function () {
 
   reset();
-
-  // Initialize the chart when the page loads
-  initPlotSnr();
-
-  // handling modal
-  toggleModal();
-
+  
   // handling buttons
   $("#startLink").click(function () {
     start();

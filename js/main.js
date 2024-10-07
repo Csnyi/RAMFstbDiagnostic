@@ -122,7 +122,7 @@ function getVersion() {
         $("#status").html("Connected");
         $(".conn").toggle();
         $(".createReport").toggle();
-        // chart initialisation
+        // create chart initialisation
         initPlotCr();
         // load Satellite list and Report list
         returnSatList();
@@ -708,7 +708,7 @@ function dataToDrawCharts() {
         DSQ1.1: ${dsq11} <br>
         Tone: ${tone}
       `);
-      optionList("tpList", reportData);
+    optionList("tpList", reportData);
 }
 
 // information handling
@@ -891,10 +891,6 @@ $(function(){
     getVersion();
 
     $('#ipBtn').click(function () {
-        initPlotCr();
-        resetLog();
-        $('#fps').html('');
-        $('#status').html('');        
         var ipValid = isValidIP(ipInput.value);
         ipValid ? localStorage.setItem("ip", ipInput.value): alert("Invalid IP: "+ ipInput.value +"!");
         ipInput.value = localStorage.getItem("ip");
@@ -951,15 +947,15 @@ $(function(){
           dsq = dsqObj.dsq11_port[dsqId];
         }
         $("#dsq").val(dsq);
-        initPlotSnr();
     });
 
     $(".snrSpectSw").click(function () {
         $(".createReport, .initSmartSNR").toggle();
-        initPlotSnr();
+        Plotly.Plots.resize('snrChart');
+        Plotly.Plots.resize('voltageChart');
     });
 
     $("#openCrJsonBtn").click(function () {
-      loadCrJson();
+        loadCrJson();
     });
 });
