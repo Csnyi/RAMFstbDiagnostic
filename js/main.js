@@ -1,4 +1,3 @@
-//if($(".createReport").hide()){
 // defined global variables =============================================================
 let reportList = [];
 let reportListNew = [];
@@ -748,12 +747,12 @@ function returnSatList(){
 
 // check and read JSON
 
-function checkLock(text) {
+function checkParam(text) {
   const regex = /common_param/gi;
   return regex.test(text);
 }
 
-function validateJsonKey(jsonObj) {
+function validateJsonKeyCr(jsonObj) {
   const requiredKeys = ['date', 'version', 'sat_position', 'sat_name', 'tp_num', 'lnb_info', 'lnb_3d', 'user', 'dish', 'stats', 'common_param', 'spectrum_crc', 'spectrum_band_points', 'spectrum_data', 'ret_code'];
 
   for (let key of requiredKeys) {
@@ -765,7 +764,7 @@ function validateJsonKey(jsonObj) {
   return true; // All necessary members can be found and are of type number
 }
 
-function checkJSONForm(response) {
+function checkJSONFormCr(response) {
   try {
       JSON.parse(response); 
       console.log('The file is valid JSON.');
@@ -787,16 +786,18 @@ function readSpectrumJson() {
   reader.addEventListener("load", () => {
 
       var response = reader.result;
-      var jsonValid = checkJSONForm(response);
-      var containsLock = checkLock(response);
+      var jsonValid = checkJSONFormCr(response);
+      var containsLock = checkParam(response);
       if (!containsLock || !jsonValid) {
           logElem(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
+          console.log("contains not ok");
           return;
       };
       reportData = JSON.parse(response);
-      var validJsonKeys = validateJsonKey(reportData);
+      var validJsonKeys = validateJsonKeyCr(reportData);
       if (!validJsonKeys) {
           logElem(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
+          console.log("valid not ok");
           return;
       };
 
@@ -850,33 +851,35 @@ function exportJson() {
 
 // Json load handling
 
-let fileInputCr = document.getElementById("fileinput-cr");
+function loadCrJson() {
+  let fileInputCr = document.getElementById("fileinput-cr");
 
-fileInputCr.addEventListener("click", function () {
-  initPlotCr();
-  resetLog();
-  if (fileInputCr.files.length > 0) {
-    handleFile(fileInputCr.files[0]);
-  }
-});
+  fileInputCr.addEventListener("click", function () {
+    initPlotCr();
+    resetLog();
+    if (fileInputCr.files.length > 0) {
+      handleFile(fileInputCr.files[0]);
+    }
+  });
 
-fileInputCr.addEventListener("change", function () {
-  initPlotCr();
-  resetLog();
-  if (fileInputCr.files.length > 0) {
-    handleFile(fileInputCr.files[0]);
-  } else {
-    logElem("No JSON selected!");
-  }
-});
+  fileInputCr.addEventListener("change", function () {
+    initPlotCr();
+    resetLog();
+    if (fileInputCr.files.length > 0) {
+      handleFile(fileInputCr.files[0]);
+    } else {
+      logElem("No JSON selected!");
+    }
+  });
 
-function handleFile(myFile) {
-  var fileName = myFile.name;
-  var fileExtension = fileName.split('.').pop().toLowerCase();
-  if (fileExtension === 'json') {
-    readSpectrumJson();
-  } else {
-    logElem(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
+  function handleFile(myFile) {
+    var fileName = myFile.name;
+    var fileExtension = fileName.split('.').pop().toLowerCase();
+    if (fileExtension === 'json') {
+      readSpectrumJson();
+    } else {
+      logElem(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
+    }
   }
 }
 
@@ -956,6 +959,7 @@ $(function(){
         initPlotSnr();
     });
 
+    $("#openCrJsonBtn").click(function () {
+      loadCrJson();
+    });
 });
-
-//}

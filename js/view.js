@@ -300,32 +300,39 @@ function updateChartJson(data) {
     });
 }
 
+function loadSnrJson() {
+    let fileInputSnr = document.getElementById("fileinput-snr");
 
-let fileInputSnr = document.getElementById("fileinput-snr");
+    fileInputSnr.addEventListener("click", function () {
+        reset();
+        if (fileInputSnr.files.length > 0) {
+            handleFile(fileInputSnr.files[0]);
+        }
+    });
 
-fileInputSnr.addEventListener("click", function () {
-    reset();
-    if (fileInputSnr.files.length > 0) {
-        handleFile(fileInputSnr.files[0]);
-    }
-});
+    fileInputSnr.addEventListener("change", function () {
+        reset();
+        if (fileInputSnr.files.length > 0) {
+            handleFile(fileInputSnr.files[0]);
+        } else {
+            logError("No JSON selected!");
+        }
+    });
 
-fileInputSnr.addEventListener("change", function () {
-    reset();
-    if (fileInputSnr.files.length > 0) {
-        handleFile(fileInputSnr.files[0]);
-    } else {
-        logError("No JSON selected!");
-    }
-});
-
-function handleFile(myFile) {
-    var fileName = myFile.name;
-    var fileExtension = fileName.split('.').pop().toLowerCase();
-    if (fileExtension === 'json') {
-        readJson();
-    } else {
-        logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
+    function handleFile(myFile) {
+        var fileName = myFile.name;
+        var fileExtension = fileName.split('.').pop().toLowerCase();
+        if (fileExtension === 'json') {
+            readJson();
+        } else {
+            logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
+        }
     }
 }
+
+$(function () {
+    $("#openSnrJsonBtn").click(function () {
+        loadSnrJson();
+    });
+});
 
