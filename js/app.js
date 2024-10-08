@@ -101,9 +101,8 @@ function start() {
   eventSourceSnr.onerror = function(e) {
     if (this.readyState != eventSourceSnr.CONNECTING) {
       clearInterval(eventSourceSnrInterval);
-      logError(`<div class="alert">A connection error occurred.</div>`);
       eventSourceSnr.close();
-      //initSmartSNR(); 
+      logError(`<div class="alert">A connection error occurred.</div>`);
       console.log("EventSource Reconnection");
       setTimeout(() => start(), 1000);  
     }
@@ -445,7 +444,6 @@ $(function () {
   
   // handling buttons
   $("#startLink").click(function () {
-    //initSmartSNR();
     start();
   });
 
