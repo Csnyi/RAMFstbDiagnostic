@@ -475,6 +475,7 @@ const optionList = (selectId, list) => {
         option.innerHTML = list.common_param[i].freq + " " + list.common_param[i].polarity + " " + list.common_param[i].sr;
         sel.appendChild(option);
       }
+      $("#tpNum").html(list.tp_num);
       break;
   }
 }
@@ -663,6 +664,7 @@ function drawGraphs() {
     yLmsnrData = [];
     yRssiData = [];
     resetLog();
+    $("#tpList, #tpNum").html("");
     setTimeout(() => {
         let reportName = document.getElementById("dirList").value;
         returnReport(reportName)
@@ -855,16 +857,12 @@ function loadCrJson() {
   let fileInputCr = document.getElementById("fileinput-cr");
 
   fileInputCr.addEventListener("click", function () {
-    initPlotCr();
-    resetLog();
     if (fileInputCr.files.length > 0) {
       handleFile(fileInputCr.files[0]);
     }
   });
 
   fileInputCr.addEventListener("change", function () {
-    initPlotCr();
-    resetLog();
     if (fileInputCr.files.length > 0) {
       handleFile(fileInputCr.files[0]);
     } else {
@@ -899,7 +897,6 @@ $(function(){
     // Event listener for the dir_list
     $("#dirList").change(function() {
         initPlotCr();
-        resetLog();
         drawGraphs();
     });
 
@@ -918,6 +915,8 @@ $(function(){
     
     $("#tpList").change(function(){
         $(".createReport, .initSmartSNR").toggle();
+        Plotly.Plots.resize('snrChart');
+        Plotly.Plots.resize('voltageChart');
         let id = $(this).children("option:selected").val();
         let idx = id - 1;
         $("#freq").val(reportData.common_param[idx].freq);
