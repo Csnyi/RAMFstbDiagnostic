@@ -30,6 +30,8 @@ let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
 let tpData = '';
+let retryCount = 0; 
+const maxRetries = 5; 
 
 // IP input container
 var ipContent = document.getElementById("ip");
@@ -48,6 +50,7 @@ function isValidIP(ip) {
 }
 
 function initSmartSNR() {
+  reset();
   var ip = localStorage.getItem("ip");
   var freq = Number(document.getElementById("freq").value);
   var freq_lo = document.getElementById("freq_lo").value;
@@ -76,6 +79,7 @@ function initSmartSNR() {
   xhr.send();
   xhr.onerror = function() { 
     logError(`<div class="alert">Network Error!</div>`);
+    eventSourceSnr.close();
     clearInterval(eventSourceSnrInterval);
     log("");
   };
@@ -89,11 +93,7 @@ function start() {
     clearInterval(eventSourceSnrInterval);
   }
 
-  reset();
-
   initSmartSNR();
-
-  //streamedData.tpVal = tpData; 
 
   let ip = localStorage.getItem("ip");
   eventSourceSnr = new EventSource(`http://${ip}/public?command=startEvents`);
@@ -102,8 +102,9 @@ function start() {
     if (this.readyState != eventSourceSnr.CONNECTING) {
       clearInterval(eventSourceSnrInterval);
       logError(`<div class="alert">A connection error occurred.</div>`);
-      eventSourceSnr.close(); 
-      log("Reconnection");
+      eventSourceSnr.close();
+      //initSmartSNR(); 
+      console.log("EventSource Reconnection");
       setTimeout(() => start(), 1000);  
     }
   };
@@ -122,12 +123,12 @@ function start() {
       }
     }
     if (response.ret_code != null) {
-      clearInterval(eventSourceSnrInterval);
       if ( response.ret_code == "KEY_PRESSED_ERR") logError("Busy by TV User");
       if ( response.ret_code == "ONE_CLIENT_ALLOWED_ERR") logError("Busy by APP User");
       if ( response.ret_code == "STB_BUSY_ERR") logError("Operation is not finished");
       if ( response.ret_code == "STREAMING_ERR") logError("Busy by IPTV User");
       eventSourceSnr.close();
+      clearInterval(eventSourceSnrInterval);
     }
     for (let key in collectedData) {
       if (response[key] !== undefined) {
@@ -444,6 +445,7 @@ $(function () {
   
   // handling buttons
   $("#startLink").click(function () {
+    //initSmartSNR();
     start();
   });
 
