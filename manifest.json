@@ -40,9 +40,9 @@
         "js/xlsx.full.min.js",
         "js/api/about_this.js",
         "js/api/modal.js",
-        "js/api/main.js", 
-        "js/api/app.js",
-        "js/api/view.js"
+        "js/api/report_main.js", 
+        "js/api/snr_app.js",
+        "js/api/snr_view.js"
       ],
       "run_at": "document_end"
     }
