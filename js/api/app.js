@@ -33,22 +33,9 @@ let tpData = '';
 let retryCount = 0; 
 const maxRetries = 5; 
 
-// IP input container
-var ipContent = document.getElementById("ip");
-ipContent.addEventListener("change", function(){
-  reset();
-  var ipValid = isValidIP(ipContent.value);
-  !ipValid ? alert("Invalid IP: "+ ipContent.value +"!"): localStorage.setItem("ip", ipContent.value);
-}); 
-ipContent.value = localStorage.getItem("ip");
-
-function isValidIP(ip) {
-  // Regex pattern
-  var ipPattern = /^(25[0-5]|2[0-4]\d|[01]?\d{1,2})(\.(25[0-5]|2[0-4]\d|[01]?\d{1,2})){3}$/;
-  // We check the IP address using the pattern
-  return ipPattern.test(ip);
-}
-
+/**
+ * Function for SNR report request
+ */
 function initSmartSNR() {
   reset();
   var ip = localStorage.getItem("ip");
@@ -85,7 +72,10 @@ function initSmartSNR() {
   };
 }
 
-// when "Start" button pressed
+/**
+ * when "Start" button pressed
+ * EventSource handling
+ */
 
 function start() {
   if (eventSourceSnr) {
@@ -302,7 +292,7 @@ function nameGenerator() {
 function downloadDataAsJSON() {
   const keys = Object.keys(streamedData);
   const length = streamedData[keys[1]].length;
-  console.log(streamedData[keys[1]]);
+  //console.log(streamedData[keys[0]]);
   if (length > 0) {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(streamedData));
     const downloadAnchorNode = document.createElement('a');

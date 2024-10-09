@@ -89,6 +89,13 @@ function isValidIP(ip) {
   return ipPattern.test(ip);
 }
 
+ipInput.addEventListener("change", function(){
+  var ipValid = isValidIP(ipInput.value);
+  !ipValid ? alert("Invalid IP: "+ ipInput.value +"!"): localStorage.setItem("ip", ipInput.value);
+  ipInput.value = localStorage.getItem("ip");
+  getVersion();
+}); 
+
 // connect EventSource ==================================================================
 var millisec = Date.now();
 var firstStart = true;

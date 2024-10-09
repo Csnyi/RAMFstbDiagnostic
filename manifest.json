@@ -38,11 +38,11 @@
         "js/dataTables.min.js",
         "js/plotly-latest.min.js", 
         "js/xlsx.full.min.js",
-        "js/about_this.js",
-        "js/modal.js",
-        "js/main.js", 
-        "js/app.js",
-        "js/view.js"
+        "js/api/about_this.js",
+        "js/api/modal.js",
+        "js/api/main.js", 
+        "js/api/app.js",
+        "js/api/view.js"
       ],
       "run_at": "document_end"
     }
