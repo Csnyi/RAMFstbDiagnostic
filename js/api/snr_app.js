@@ -30,8 +30,7 @@ let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
 let tpData = '';
-let retryCount = 0; 
-const maxRetries = 5; 
+let startOn = false;
 
 /**
  * Function for SNR report request
@@ -130,7 +129,9 @@ function start() {
   eventSourceSnrInterval = setInterval(processData, 1000);
 }
 
-// when "Stop" button pressed
+/**
+ * when "Stop" button pressed
+ */  
 function stop() { 
   if (eventSourceSnr == undefined) {
      logError(`<p class="warn">No request!</p>`);
@@ -160,7 +161,9 @@ function stop() {
   }
 }
 
-// when "Reset" button pressed
+/**
+ * when "Reset" button pressed
+ */  
 function reset() {
   initPlotSnr();
   logError("");
@@ -199,6 +202,9 @@ function reset() {
   tpData = '';
 }
 
+/**
+ * process for collected data in initSmartSNR function
+ */
 function processData() {
   if (collectedData.snr.length > 0) {
     $("#fpsSnr").html(fpsCounter);
@@ -232,6 +238,7 @@ function processData() {
     // set time of measure
     let setTime = document.getElementById("setTime").value;
     if (countResponse == setTime*60) {
+      startOn = false;
       stop();
     }
    
@@ -275,6 +282,10 @@ function lockInfo(infos) {
   return info;
 }
 
+/**
+ * Generate a name for download files
+ * @returns date, frequency and polarity
+ */
 function nameGenerator() {
   let d = new Date().toLocaleDateString();
   let dArr = d.split(". ");
@@ -288,7 +299,9 @@ function nameGenerator() {
   return result;
 }
 
-// Function to download collected data as JSON
+/**
+ *  Function to download collected data as JSON
+ */
 function downloadDataAsJSON() {
   const keys = Object.keys(streamedData);
   const length = streamedData[keys[1]].length;
@@ -307,7 +320,9 @@ function downloadDataAsJSON() {
   }
 }
 
-// Function to convert JSON data to Excel and download
+/**
+ * Function to convert JSON data to Excel and download
+ */ 
 function downloadDataAsExcel() {
   const keys = Object.keys(streamedData);
   const length = streamedData[keys[1]].length; 
@@ -338,11 +353,18 @@ function log(msg) {
 }
 
 function logError(msg) {
-  let logElem = document.getElementById('errorElem');
-  logElem.innerHTML = msg + '<br>';
+  let errorElem = document.getElementById('errorElem');
+  errorElem.innerHTML = msg + '<br>';
 }
 
-// update the graph with data every second 
+/**
+ * update the graph with data every second 
+ * @param {string} infoLock - Text converted from the lock value, which can be "1" or "0".
+ * @param {number} avgSnr 
+ * @param {number} avgLmSnr 
+ * @param {number} avgLnbVoltage 
+ * @param {number} avgPsuVoltage 
+ */
 function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage) {
   const now = new Date();
   const nowZone = now.getTimezoneOffset();
@@ -372,7 +394,9 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
   });
 }
 
-// Initialize the chart
+/**
+ * Initialize the chart
+ */
 function initPlotSnr() {
   Plotly.newPlot('snrChart', [{
     x: [],
@@ -426,18 +450,18 @@ function initPlotSnr() {
   });
 };
 
-// jQuery
-
 $(function () {
 
   reset();
   
   // handling buttons
   $("#startLink").click(function () {
+    startOn = true;
     start();
   });
 
   $("#stopLink").click(function () {
+    startOn = false;
     stop();
   });
 
@@ -445,12 +469,27 @@ $(function () {
     reset();
   });
 
+  $("#lastData").click(function () {
+    if (startOn) return;
+    loadLastData();
+  });
+
   $("#toJsonLink").click(function () {
+    if (startOn) return;
     downloadDataAsJSON();
   });
 
   $("#toXlsxLink").click(function () {
+    if (startOn) return;
     downloadDataAsExcel();
+  });
+
+  $("#openSnrJsonBtn").click(function (e) {
+      if (startOn) {
+          e.preventDefault(); 
+      }else{
+          loadSnrJson();
+      }
   });
 
 });

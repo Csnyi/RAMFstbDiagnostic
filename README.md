@@ -1,2 +1,2 @@
-Diagnosztika készítése az SR-525HD-vel <br>
-Spectrum report és SNR report
+Running diagnostics with the SR-525HD <br>
+Spectrum report and SNR report
