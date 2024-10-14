@@ -348,7 +348,7 @@ function createReport(){
 }
 
 /** Sends the initSmartSNR request to the STB.   */
-function initSmartSNR(){
+/* function initSmartSNR(){
     var ip = localStorage.getItem("ip");
 
   var freq = Number(document.getElementById("freq").value);
@@ -388,7 +388,7 @@ function initSmartSNR(){
           logElem(`<div class="alert">Network Error!</div>`);
           setProgressBarErr(100, "Connection Error!");
       });
-};
+}; */
 
 // reportList and reportListNew and the difference, get lastReportName
 
