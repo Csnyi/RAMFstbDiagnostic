@@ -77,7 +77,7 @@ const setProgressBarErr = (width, message) => {
   progressBar.textContent = message; 
 };
 
-// Validate IP input, set localStorage [$('#ip').change()] ==============================
+// Validate IP input, set localStorage [$('#ip').change(), $('#ipBtn').click()] ==============================
 var ipInput = document.getElementById("ip");
 ipInput.value = localStorage.getItem("ip");
 
@@ -98,7 +98,6 @@ ipInput.addEventListener("change", function(){
 
 // connect EventSource ==================================================================
 var millisec = Date.now();
-var firstStart = true;
 var fpsCounterId;
 var counter = 0, cntDelta, localCounter = 0;
 localStorage['fps_counter'] = 0;

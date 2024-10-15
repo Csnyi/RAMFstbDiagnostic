@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "R.A.M.F. Diagnostic",
-  "version": "3.0",
+  "version": "4.0",
   "content_security_policy": "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'self'",
   "description": "A Chrome Extension for R.A.M.F. Diagnostic",
   "background": {
@@ -40,9 +40,9 @@
         "js/xlsx.full.min.js",
         "js/api/about_this.js",
         "js/api/modal.js",
-        "js/api/main.js", 
-        "js/api/app.js",
-        "js/api/view.js"
+        "js/api/report_main.js", 
+        "js/api/snr_app.js",
+        "js/api/snr_view.js"
       ],
       "run_at": "document_end"
     }
