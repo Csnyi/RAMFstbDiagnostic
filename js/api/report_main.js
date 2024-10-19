@@ -636,6 +636,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         xaxis: {
             title: 'Transponder',
             type: 'category',
+            tickmode:"auto",
+            nticks: 8,
             autorange: true
         },
         yaxis: {
@@ -654,6 +656,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         xaxis: {
             title: 'Transponder',
             type: 'category',
+            tickmode:"auto",
+            nticks: 8,
             autorange: true
         },
         yaxis: {
