@@ -1,26 +1,22 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "R.A.M.F. Diagnostic",
   "version": "4.0",
-  "content_security_policy": "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'self'",
   "description": "A Chrome Extension for R.A.M.F. Diagnostic",
-  "background": {
-    "scripts": [
-      "js/background.js"
-    ],
-    "persistent": false
+  "icons": {
+    "16": "images/icon_16.png",
+    "48": "images/icon_48.png",
+    "128": "images/icon_128.png"
   },
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "images/icon_16.png",
       "48": "images/icon_48.png",
       "128": "images/icon_128.png"
     }
   },
-  "icons": {
-    "16": "images/icon_16.png",
-    "48": "images/icon_48.png",
-    "128": "images/icon_128.png"
+  "background": {
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
@@ -36,7 +32,7 @@
       "js": [
         "js/jquery-2.1.3.min.js", 
         "js/dataTables.min.js",
-        "js/plotly-latest.min.js", 
+        "js/plotly-2.35.2.min.js", 
         "js/xlsx.full.min.js",
         "js/api/about_this.js",
         "js/api/modal.js",
@@ -48,12 +44,22 @@
     }
   ],
   "web_accessible_resources": [
-    "html/*.html"
+    {
+      "resources": [
+        "html/*.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ],
   "permissions": [
     "tabs",
     "activeTab",
     "storage",
     "unlimitedStorage"
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

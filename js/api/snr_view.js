@@ -265,7 +265,8 @@ function updateChartJson(data) {
         yaxis: {
             title: 'Value',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 
     // Update Voltage chart
@@ -289,7 +290,8 @@ function updateChartJson(data) {
         yaxis: {
             title: 'Value',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 }
 

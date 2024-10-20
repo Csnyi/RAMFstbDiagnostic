@@ -643,7 +643,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         yaxis: {
             title: 'Values',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 
     Plotly.react('reportRssi', [{
@@ -663,7 +664,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         yaxis: {
             title: 'Values',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 }
 
