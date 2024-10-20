@@ -140,7 +140,7 @@ ul a {
 }
   
 .helpinfo tr:nth-child(even) {
-    background-color: #dfebec;
+    background-color: #dddddd;
 }
 
 hr {

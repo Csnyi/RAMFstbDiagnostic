@@ -379,7 +379,8 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
   // Automatically adjust the x-axis and y-axis ranges
   Plotly.relayout('snrChart', {
     'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true  // Automatically adjust the y-axis range
+    'yaxis.autorange': true, // Automatically adjust the y-axis range
+    "hovermode": 'x unified'
   });
 
   Plotly.extendTraces('voltageChart', {
@@ -390,7 +391,8 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
   // Automatically adjust the x-axis and y-axis ranges
   Plotly.relayout('voltageChart', {
     'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true  // Automatically adjust the y-axis range
+    'yaxis.autorange': true,  // Automatically adjust the y-axis range
+    "hovermode": 'x unified'
   });
 }
 

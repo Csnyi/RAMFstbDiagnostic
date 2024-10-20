@@ -1,6 +1,7 @@
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.windows.create({
-      url: "html/main.html",
-      type: "normal"
-    });
+chrome.action.onClicked.addListener((tab) => {
+  chrome.windows.create({
+    url: "html/main.html",
+    type: "normal"
   });
+});
+

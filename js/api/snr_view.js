@@ -97,7 +97,7 @@ function loadLastData() {
       $("#fileName").html(`<div class="success">View - Last Data</div>`);
       streamedDataProcess(streamedData, "Last Data");
     }else{
-      logError(`<div class="alert">No data available!</div>`)
+      logError(`<div class="alert">No data available!</div>`);
     }
   };
 
@@ -195,7 +195,7 @@ function streamedDataProcess(allData, headText) {
               <div class="success">Transponder: ${allData.tpVal[0]}</div>
           `);
 
-    toggleModal();
+    toggleModal(".modalDt", ".modalBtnDt", ".closeDt");
 };
 
 /* datatables hendling */
@@ -223,57 +223,6 @@ function initDataTables(dataSet) {
       });
       infoTables.push(infoTable);
   }
-}
-
-/**
- * modal handling
-*/
-function toggleModal(){
-    // Get the modal
-    var modals = document.querySelectorAll(".modalDt");
-    // Get the button that opens the modal
-    var btns = document.querySelectorAll(".modalBtnDt");
-    // Get the <span> element that closes the modal
-    var spans = document.querySelectorAll(".closeDt");
-  
-    // Set up event listener for 'esc' key press
-    document.addEventListener("keydown", function(event) {
-      if (event.key === "Escape") {
-        for (let i = 0; i < modals.length; i++) {
-          let modal = modals[i];
-          if (modal.style.display === "block") {
-            modal.style.display = "none";
-            break; // Exit loop once modal is closed
-          }
-        }
-      }
-    });
-  
-    document.addEventListener("click", function(event) {
-      
-      for (let i = 0; i<modals.length; i++){
-        let modal = modals[i];
-        let btn = btns[i];
-        let span = spans[i];
-    
-        // When the user clicks on the button, open the modal 
-        if(event.target == btn) {
-          modal.style.display = "block";
-        }
-    
-        // When the user clicks on <span> (x), close the modal
-        if(event.target == span) {
-          modal.style.display = "none";
-        }
-
-        // Set up a single event listener for clicks outside modals
-        if (event.target == modal) {
-          modal.style.display = "none";
-        }
-
-      }
-
-    });
 }
 
 /* load Chart */
@@ -316,7 +265,8 @@ function updateChartJson(data) {
         yaxis: {
             title: 'Value',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 
     // Update Voltage chart
@@ -340,7 +290,8 @@ function updateChartJson(data) {
         yaxis: {
             title: 'Value',
             autorange: true
-        }
+        },
+        hovermode: 'x unified'
     });
 }
 
