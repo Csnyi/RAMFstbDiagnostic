@@ -60,15 +60,17 @@ function initSmartSNR() {
     smart_lnb_enabled: slnbe
   };
   url.search = new URLSearchParams(params).toString();
-  xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.send();
-  xhr.onerror = function() { 
+  fetch(url).then(response => {
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+  }).catch(error => {
     logError(`<div class="alert">Network Error!</div>`);
     eventSourceSnr.close();
     clearInterval(eventSourceSnrInterval);
     log("");
-  };
+    console.log("initSNR: ", error);
+  });
 }
 
 /**
@@ -77,11 +79,18 @@ function initSmartSNR() {
  */
 
 function start() {
+
   if (eventSourceSnr) {
     eventSourceSnr.close();
     clearInterval(eventSourceSnrInterval);
   }
 
+  db.data.clear().then(() => {
+    console.log('Database deleted');
+  }).catch((err) => {
+    console.error('Database deletion error:', err);
+  });
+  
   initSmartSNR();
 
   let ip = localStorage.getItem("ip");
@@ -222,7 +231,7 @@ function processData() {
 
     //data to json end xlsx
     let timeStamp = new Date().getTime();
-    streamedData.timestamp.push(timeStamp);
+    /* streamedData.timestamp.push(timeStamp);
     streamedData.tpVal.push(tpData);
     streamedData.lock.push(average(collectedData.lock));
     streamedData.carrier_offset.push(avgCarrierOffset);
@@ -233,7 +242,24 @@ function processData() {
     streamedData.alfa.push(avgAlfa);
     streamedData.beta.push(avgBeta);
     streamedData.gamma.push(avgGamma);
-    streamedData.lnb_current.push(avgLnbCurrent);
+    streamedData.lnb_current.push(avgLnbCurrent); */
+
+    let dataPerSec = {
+        tpVal: tpData,
+        timestamp: timeStamp,
+        lock: average(collectedData.lock),
+        carrier_offset: avgCarrierOffset,
+        snr: avgSnr,
+        lm_snr: avgLmSnr,
+        lnb_voltage: avgLnbVoltage,
+        psu_voltage: avgPsuVoltage,
+        alfa: avgAlfa,
+        beta: avgBeta,
+        gamma: avgGamma,
+        lnb_current: avgLnbCurrent
+    };
+    
+    saveToIDB(dataPerSec);
 
     // set time of measure
     let setTime = document.getElementById("setTime").value;
@@ -303,11 +329,11 @@ function nameGenerator() {
  *  Function to download collected data as JSON
  */
 function downloadDataAsJSON() {
-  const keys = Object.keys(streamedData);
-  const length = streamedData[keys[1]].length;
-  //console.log(streamedData[keys[0]]);
-  if (length > 0) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(streamedData));
+  retrieveData().then(function (data) {
+    const storedData = data;
+    const keys = Object.keys(storedData);
+    const length = storedData[keys[1]].length;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedData));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     let namePartJson = nameGenerator();
@@ -315,23 +341,24 @@ function downloadDataAsJSON() {
     document.body.appendChild(downloadAnchorNode); // Required for FF
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-  }else{
+  }).catch(function () {
     logError(`<div class="alert">No data available!</div>`);
-  }
+  });
 }
 
 /**
  * Function to convert JSON data to Excel and download
  */ 
 function downloadDataAsExcel() {
-  const keys = Object.keys(streamedData);
-  const length = streamedData[keys[1]].length; 
-  if (length > 0) {  
+  retrieveData().then(function (data) {
+    const storedData = data;
+    const keys = Object.keys(storedData);
+    const length = storedData[keys[1]].length; 
     const dataArray = [];
     for (let i = 0; i < length; i++) {
       const row = {};
       keys.forEach(key => {
-        row[key] = streamedData[key][i];
+        row[key] = storedData[key][i];
       });
       dataArray.push(row);
     }
@@ -342,9 +369,9 @@ function downloadDataAsExcel() {
     // Write the workbook and trigger the download
     let namePartXlsx = nameGenerator();
     XLSX.writeFile(wb, `snr_${namePartXlsx}.xlsx`);
-  }else{
-    logError(`<div class="alert">No data available!</div>`)
-  }
+  }).catch(function () {
+    logError(`<div class="alert">No data available!</div>`);
+  });
 }
 
 function log(msg) {
@@ -465,15 +492,23 @@ $(function () {
   $("#stopLink").click(function () {
     startOn = false;
     stop();
+    /* if (streamedData.tpVal.length > 0) {
+      saveToIndexedDB(streamedData);
+    } */
   });
 
   $("#resetLink").click(function () {
     reset();
   });
 
-  $("#lastData").click(function () {
+  $("#lastDataLink").click(function () {
     if (startOn) return;
-    loadLastData();
+    //loadLastData();
+    retrieveData().then(function (data) {
+      streamedDataProcess(data, "Storage Data");
+    }).catch(function () {
+      logError(`<div class="alert">No data available!</div>`);
+    });
   });
 
   $("#toJsonLink").click(function () {

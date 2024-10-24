@@ -90,7 +90,7 @@ function detailsData(arr, unit) {
 /**
  * Show last measured data
  */
-function loadLastData() {
+/* function loadLastData() {
     const keys = Object.keys(streamedData);
     const length = streamedData[keys[1]].length; 
     if (length > 0) {
@@ -99,7 +99,7 @@ function loadLastData() {
     }else{
       logError(`<div class="alert">No data available!</div>`);
     }
-  };
+  }; */
 
 /** 
  * Data processing to streamed data 
