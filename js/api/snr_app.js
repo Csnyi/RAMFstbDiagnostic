@@ -11,26 +11,14 @@ let collectedData = {
     gamma: [],
     lnb_current: []
 };
-let streamedData = {
-    tpVal: [],
-    timestamp: [],
-    lock: [],
-    carrier_offset: [],
-    snr: [],
-    lm_snr: [],
-    lnb_voltage: [],
-    psu_voltage: [],
-    alfa: [],
-    beta: [],
-    gamma: [],
-    lnb_current: []
-};
+
 let eventSourceSnrInterval;
 let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
 let tpData = '';
 let startOn = false;
+let firstPlotRelay = true;
 
 /**
  * Function for SNR report request
@@ -141,32 +129,15 @@ function start() {
 /**
  * when "Stop" button pressed
  */  
-function stop() { 
-  if (eventSourceSnr == undefined) {
-     logError(`<p class="warn">No request!</p>`);
-  }else{
-
-    if (eventSourceSnr.readyState == 2) {
-      if (streamedData.timestamp.length > 0) {  
-        logError(`Request stopped!<br><br>
-          Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
-          Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
-        `);
-      }else{
-        logError(`<p class="warn">No request!</p>`);
-      }
-    }
-
-    if (eventSourceSnr.readyState == 1) {
-      eventSourceSnr.close();
-      clearInterval(eventSourceSnrInterval);
-      $("#fpsSnr").html(0);
-      logError(`Request stopped!<br><br>
-        Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
-        Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
-      `);
-    }
-
+function stop(streamedData) { 
+  if (eventSourceSnr) {
+    eventSourceSnr.close();
+    clearInterval(eventSourceSnrInterval);
+    $("#fpsSnr").html(0);
+    logError(`Request stopped!<br><br>
+      Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
+      Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
+    `);
   }
 }
 
@@ -191,24 +162,11 @@ function reset() {
     gamma: [],
     lnb_current: []
   };
-  streamedData = {
-    tpVal: [],
-    timestamp: [],
-    lock: [],
-    carrier_offset: [],
-    snr: [],
-    lm_snr: [],
-    lnb_voltage: [],
-    psu_voltage: [],
-    alfa: [],
-    beta: [],
-    gamma: [],
-    lnb_current: []
-  };
   countResponse = 1;
   countWait = 1;
   fpsCounter = 0;
   tpData = '';
+  firstPlotRelay = true;
 }
 
 /**
@@ -231,18 +189,6 @@ function processData() {
 
     //data to json end xlsx
     let timeStamp = new Date().getTime();
-    /* streamedData.timestamp.push(timeStamp);
-    streamedData.tpVal.push(tpData);
-    streamedData.lock.push(average(collectedData.lock));
-    streamedData.carrier_offset.push(avgCarrierOffset);
-    streamedData.snr.push(avgSnr);
-    streamedData.lm_snr.push(avgLmSnr);
-    streamedData.lnb_voltage.push(avgLnbVoltage);
-    streamedData.psu_voltage.push(avgPsuVoltage);
-    streamedData.alfa.push(avgAlfa);
-    streamedData.beta.push(avgBeta);
-    streamedData.gamma.push(avgGamma);
-    streamedData.lnb_current.push(avgLnbCurrent); */
 
     let dataPerSec = {
         tpVal: tpData,
@@ -329,8 +275,12 @@ function nameGenerator() {
  *  Function to download collected data as JSON
  */
 function downloadDataAsJSON() {
-  retrieveData().then(function (data) {
-    const storedData = data;
+  retrieveData().then(function (storedData) {
+    //const storedData = data;
+    if ( storedData.tpVal.length == 0 ) {
+       throw error = "Empty Storage!";
+       return;
+    }
     const keys = Object.keys(storedData);
     const length = storedData[keys[1]].length;
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedData));
@@ -341,8 +291,8 @@ function downloadDataAsJSON() {
     document.body.appendChild(downloadAnchorNode); // Required for FF
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-  }).catch(function () {
-    logError(`<div class="alert">No data available!</div>`);
+  }).catch(function (error) {
+    logError(`<div class="alert">No data available! ${error} </div>`);
   });
 }
 
@@ -350,8 +300,11 @@ function downloadDataAsJSON() {
  * Function to convert JSON data to Excel and download
  */ 
 function downloadDataAsExcel() {
-  retrieveData().then(function (data) {
-    const storedData = data;
+  retrieveData().then(function (storedData) {
+    if ( storedData.tpVal.length == 0 ) {
+       throw error = "Empty Storage!";
+       return;
+    }
     const keys = Object.keys(storedData);
     const length = storedData[keys[1]].length; 
     const dataArray = [];
@@ -369,8 +322,8 @@ function downloadDataAsExcel() {
     // Write the workbook and trigger the download
     let namePartXlsx = nameGenerator();
     XLSX.writeFile(wb, `snr_${namePartXlsx}.xlsx`);
-  }).catch(function () {
-    logError(`<div class="alert">No data available!</div>`);
+  }).catch(function (error) {
+    logError(`<div class="alert">No data available! ${error}</div>`);
   });
 }
 
@@ -403,24 +356,24 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
     y: [[avgSnr], [avgLmSnr]]
   }, [0, 1]);
 
-  // Automatically adjust the x-axis and y-axis ranges
-  Plotly.relayout('snrChart', {
-    'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true, // Automatically adjust the y-axis range
-    "hovermode": 'x unified'
-  });
-
   Plotly.extendTraces('voltageChart', {
     x: [[timeLabel], [timeLabel]],
     y: [[avgLnbVoltage], [avgPsuVoltage]]
-  }, [0, 1]);
+  }, [0, 1])
 
-  // Automatically adjust the x-axis and y-axis ranges
-  Plotly.relayout('voltageChart', {
-    'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true,  // Automatically adjust the y-axis range
-    "hovermode": 'x unified'
-  });
+  if (firstPlotRelay){
+    Plotly.relayout('snrChart', {
+      'xaxis.autorange': true, 
+      'yaxis.autorange': true, 
+      "hovermode": 'x unified'
+    });
+    Plotly.relayout('voltageChart', {
+      'xaxis.autorange': true, 
+      'yaxis.autorange': true,  
+      "hovermode": 'x unified'
+    });
+    firstPlotRelay = false;
+  };
 }
 
 /**
@@ -490,11 +443,12 @@ $(function () {
   });
 
   $("#stopLink").click(function () {
-    startOn = false;
-    stop();
-    /* if (streamedData.tpVal.length > 0) {
-      saveToIndexedDB(streamedData);
-    } */
+    if (startOn) {
+      startOn = false;
+      retrieveData().then(function(transformedData) {
+        stop(transformedData);
+      });
+    }
   });
 
   $("#resetLink").click(function () {
@@ -503,12 +457,31 @@ $(function () {
 
   $("#lastDataLink").click(function () {
     if (startOn) return;
-    //loadLastData();
     retrieveData().then(function (data) {
       streamedDataProcess(data, "Storage Data");
     }).catch(function () {
       logError(`<div class="alert">No data available!</div>`);
     });
+  });
+
+  $("#delStoreLink").click(function(){ 
+    retrieveData().then(function (data) {
+      if (data.tpVal.length > 0){
+          if (!confirm("Are you sure!")) return;
+          db.data.clear ().then(() => {
+            reset();
+            logError(`<div class="success">Database deleted!</div>`);
+            console.log('Database deleted');
+          }).catch((err) => {
+            logError(`<div class="alert">Database deletion error:! ${err}</div>`);
+            console.error('Database deletion error:', err);
+          });
+      }else{
+          logError(`<div class="alert">No data available!</div>`);
+      }
+    }).catch(function () {
+      logError(`<div class="alert">No data available!</div>`);
+    });  
   });
 
   $("#toJsonLink").click(function () {

@@ -24,29 +24,10 @@ function initIdb() {
     return db;
 }
 
-/* function retrieveData() {
-    return db.data.toArray().then(function (result) {
-        return result;
-    });
-} */
-
 // Saving data to IndexedDB
 
 // db.data.add:
-// array the data points, like streamedData
-// measurement/id
-function saveToIndexedDB(streamedData) { 
-    db.data.clear().then(function() {
-        db.data.add(streamedData).then(function() {
-            console.log("Data successfully saved to IndexedDB");
-        }).catch(function(error) {
-            console.log('Error adding data to IndexedDB: ' + error);
-        });
-    }).catch(function(error) {
-        console.log('Error opening IndexedDB: ' + error);
-    });
-} 
-
+// array the data points/id/sec in processData
 function saveToIDB(streamedData) {
     db.data.add(streamedData).then(function() {
         console.log("Data successfully saved to IndexedDB");
@@ -54,32 +35,10 @@ function saveToIDB(streamedData) {
         console.log('Error adding data to IndexedDB: ' + error);
     });
 }
-// data point/id - db.data.bulkAdd
-// saveToIndexedDB(mappedData(streamedData));
-function mappedData(streamedData) {
-    const data = [];
-    for (let i = 0; i < streamedData.tpVal.length; i++) {
-       data.push({
-        tpVal: streamedData.tpVal[i],
-        timestamp: streamedData.timestamp[i],
-        lock: streamedData.lock[i],
-        carrier_offset: streamedData.carrier_offset[i],
-        snr: streamedData.snr[i],
-        lm_snr: streamedData.lm_snr[i],
-        lnb_voltage: streamedData.lnb_voltage[i],
-        psu_voltage: streamedData.psu_voltage[i],
-        alfa: streamedData.alfa[i],
-        beta: streamedData.beta[i],
-        gamma: streamedData.gamma[i],
-        lnb_current: streamedData.lnb_current[i]
-        });
-    };
-    return data;
-}
 
+// database query
 function retrieveData() {
     return db.data.toArray().then(function (result) {
-        // Átalakítjuk a lekérdezett adatokat a kívánt formára
         const transformedData = {
             tpVal: [],
             timestamp: [],
@@ -96,7 +55,6 @@ function retrieveData() {
             id: []
         };
 
-        // Végigiterálunk az összes lekérdezett objektumon
         result.forEach(item => {
             transformedData.tpVal.push(item.tpVal);
             transformedData.timestamp.push(item.timestamp);
@@ -113,11 +71,11 @@ function retrieveData() {
             transformedData.id.push(item.id);
         });
 
-        return transformedData; // Visszaadjuk az átalakított adatokat
+        return transformedData; 
     });
 }
 
-// Adatok lekérdezése és megjelenítése
+// Query and display data
 retrieveData().then(function(transformedData) {
     console.log("Transformed data:", transformedData);
 });

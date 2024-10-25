@@ -87,20 +87,6 @@ function detailsData(arr, unit) {
     return response
 }
 
-/**
- * Show last measured data
- */
-/* function loadLastData() {
-    const keys = Object.keys(streamedData);
-    const length = streamedData[keys[1]].length; 
-    if (length > 0) {
-      $("#fileName").html(`<div class="success">View - Last Data</div>`);
-      streamedDataProcess(streamedData, "Last Data");
-    }else{
-      logError(`<div class="alert">No data available!</div>`);
-    }
-  }; */
-
 /** 
  * Data processing to streamed data 
  */
