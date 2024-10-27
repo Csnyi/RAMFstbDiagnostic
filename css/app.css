@@ -104,6 +104,10 @@ ul a {
     background-color: #9e7728;
 }
 
+.text-center {
+    text-align: center;
+}
+
 #conn-progress-container, #progress-container, #progress-container-scan {
     width: 100%;
     background-color: #f3f3f3;

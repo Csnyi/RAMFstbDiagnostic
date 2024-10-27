@@ -46,37 +46,32 @@ function checkJSONForm(response) {
 /**
  * Read json file and data processing
  */
-function readJson() {
-    const [file] = document.getElementById('fileinput-snr').files;
-    const reader = new FileReader(); 
-    if (file) {
-        reader.readAsText(file);
-    };
+function readJson(file, processJsonDataInChunks) {
+    const reader = new FileReader();
+
+    if (!file) return; 
+
     var fileName = file.name;
-
     $("#fileName").html(`<div class="success text-center">View - ${fileName}</div>`);
-
-    reader.addEventListener("load", () => {
-
-        var response = reader.result;
-        var jsonValid = checkJSONForm(response);
-        var containsLock = checkLock(response);
-        if (!containsLock || !jsonValid) {
+    
+    reader.addEventListener("load", (e) => {
+        const response = e.target.result;
+        if (!checkLock(response) || !checkJSONForm(response)) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
-        };
+        }
+
         var allData = JSON.parse(response);
-        var validJsonKeys = validateJsonKey(allData);
-        if (!validJsonKeys) {
+        if (!validateJsonKey(allData)) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
-        };
-
-        // data processing
+        }
+        //processJsonDataInChunks(allData);
         streamedDataProcess(allData, "JSON Data");
+    });
 
-    }, false); 
-};
+    reader.readAsText(file); 
+}
 
 /**
  * Formating the data details
@@ -287,12 +282,6 @@ function updateChartJson(data) {
 function loadSnrJson() {
     let fileInputSnr = document.getElementById("fileinput-snr");
 
-    fileInputSnr.addEventListener("click", function () {
-        if (fileInputSnr.files.length > 0) {
-            handleFile(fileInputSnr.files[0]);
-        }
-    });
-
     fileInputSnr.addEventListener("change", function () {
         if (fileInputSnr.files.length > 0) {
             handleFile(fileInputSnr.files[0]);
@@ -305,10 +294,54 @@ function loadSnrJson() {
         var fileName = myFile.name;
         var fileExtension = fileName.split('.').pop().toLowerCase();
         if (fileExtension === 'json') {
-            readJson();
+            readJson(myFile, processJsonDataInChunks);
         } else {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
         }
+    }
+
+    const loadingBar = document.getElementById("loadingBar");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    
+
+    function processJsonDataInChunks(data, chunkSize = 1) {
+        loadingBar.style.display = "block";
+    
+        const totalLength = data["tpVal"].length; // Összes adatpont száma
+        let processed = 0;
+    
+        function processNextChunk() {
+            for (let i = processed; i < Math.min(processed + chunkSize, totalLength); i++) {
+                const dataPoint = {}; // Csak az aktuális adatpont feldolgozása
+                
+                for (let key in data) {
+                    if (key != "id") {
+                        dataPoint[key] = data[key][i];
+                    }
+                    
+                }
+    
+                // Az aktuális adatpont feldolgozása
+                saveToIDB(dataPoint);  // Itt meghívhatod a megjelenítést, pl. táblázat, grafikon, stb.
+            }
+    
+            processed += chunkSize;
+            const progressPercent = Math.min(100, (processed / totalLength) * 100);
+    
+            // Betöltési sáv frissítése
+            progressBar.style.width = `${progressPercent}%`;
+            progressText.textContent = `Loading: ${Math.floor(progressPercent)}%`;
+    
+            if (processed < totalLength) {
+                setTimeout(processNextChunk, 0);  // Következő darab feldolgozása
+            } else {
+                loadingBar.style.display = "none";
+                progressText.textContent = "Loading complete!";
+            }
+        }
+    
+        processNextChunk();
     }
 }
 

@@ -149,6 +149,7 @@ function reset() {
   logError("");
   log("");
   $("#fileName").html("");
+  $("#progressText").html("");
   $("#fpsSnr").html(0);
   collectedData = {
     lock: [],
@@ -211,7 +212,9 @@ function processData() {
     let setTime = document.getElementById("setTime").value;
     if (countResponse == setTime*60) {
       startOn = false;
-      stop();
+      retrieveData().then(function(transformedData) {
+        stop(transformedData);
+      });
     }
    
     log(`<p>Processed Data: ${countResponse++} </p>
@@ -458,7 +461,7 @@ $(function () {
   $("#lastDataLink").click(function () {
     if (startOn) return;
     retrieveData().then(function (data) {
-      streamedDataProcess(data, "Storage Data");
+      streamedDataProcess(data, "Stored Data");
     }).catch(function () {
       logError(`<div class="alert">No data available!</div>`);
     });
