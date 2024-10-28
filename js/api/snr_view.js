@@ -48,12 +48,14 @@ function checkJSONForm(response) {
  */
 function readJson(file, processJsonDataInChunks) {
     const reader = new FileReader();
-
     if (!file) return; 
-
+    db.data.clear().then(function () {
+        console.log("readJson: database deleted");
+    }).catch(function (error) {
+        console.error("readJson: ", error);
+    });
     var fileName = file.name;
     $("#fileName").html(`<div class="success text-center">View - ${fileName}</div>`);
-    
     reader.addEventListener("load", (e) => {
         const response = e.target.result;
         if (!checkLock(response) || !checkJSONForm(response)) {
@@ -66,10 +68,9 @@ function readJson(file, processJsonDataInChunks) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
         }
-        //processJsonDataInChunks(allData);
+        processJsonDataInChunks(allData);
         streamedDataProcess(allData, "JSON Data");
     });
-
     reader.readAsText(file); 
 }
 
@@ -204,6 +205,7 @@ function initDataTables(dataSet) {
       });
       infoTables.push(infoTable);
   }
+  modalLoaderOff();
 }
 
 /* load Chart */
@@ -284,8 +286,10 @@ function loadSnrJson() {
 
     fileInputSnr.addEventListener("change", function () {
         if (fileInputSnr.files.length > 0) {
+            modalLoaderOn();
             handleFile(fileInputSnr.files[0]);
         } else {
+            console.log("Cancel button was clicked, no file selected.");
             logError("No JSON selected!");
         }
     });
@@ -293,7 +297,8 @@ function loadSnrJson() {
     function handleFile(myFile) {
         var fileName = myFile.name;
         var fileExtension = fileName.split('.').pop().toLowerCase();
-        if (fileExtension === 'json') {
+        var fileType = myFile.type;
+        if (fileExtension === 'json'|| fileType === 'application/json') {
             readJson(myFile, processJsonDataInChunks);
         } else {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
@@ -331,7 +336,7 @@ function loadSnrJson() {
     
             // Betöltési sáv frissítése
             progressBar.style.width = `${progressPercent}%`;
-            progressText.textContent = `Loading: ${Math.floor(progressPercent)}%`;
+            progressText.textContent = `Loading file data into IndexedDB: ${Math.floor(progressPercent)}%`;
     
             if (processed < totalLength) {
                 setTimeout(processNextChunk, 0);  // Következő darab feldolgozása

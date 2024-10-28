@@ -67,7 +67,7 @@
         <div class="menu">
           <ul>
             <li id="createReportBtn">Create Report</li>
-            <!-- The Modal -->
+            <!-- The Modal Scan-->
             <div id="trunkModalScan" class="modal-scan">
               <!-- Modal content -->
               <div class="modal-content">
@@ -95,7 +95,7 @@
             </label>
             <input class="custom-file-input" type="file" id="fileinput-cr" />
             <li class="modalBtn" id="helpLink">Help</li>
-            <!-- The Modal -->
+            <!-- The Modal help createReport -->
             <div id="trunkModalHelp" class="modal">
               <!-- Modal content -->
               <div class="modal-content">
@@ -278,8 +278,8 @@
               </label>
               <input class="custom-file-input" type="file" id="fileinput-snr" />
               <li class="modalBtn" id="helpLink">Help</li>
-              <!-- The Modal -->
-              <div id="trunkModalLnb" class="modal">
+              <!-- The Modal help SNR -->
+              <div id="trunkModalSnrHelp" class="modal">
                 <!-- Modal content -->
                 <div class="modal-content">
                   <span class="close">&times;</span>
@@ -294,6 +294,14 @@
           <div id="infopanel" class="success">
             <div id="logElem"></div>
           </div>
+          <!-- The Modal loader-->
+          <div id="trunkModalLoader" class="modal-loader">
+            <!-- Modal content -->
+            <div class="modal-content-loader">
+              <h3>Loading...</h3>
+              <div class="loader"></div> 
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -305,7 +313,7 @@
       &copy Diagnostics with sr-525hd 2024 |
       <span class="about_this modalBtn" id="modalBtnAbout">About this</span>
     </p>
-    <!-- The Modal -->
+    <!-- The Modal About -->
     <div id="trunkModalAbout" class="modal">
       <!-- Modal content -->
       <div class="modal-content">

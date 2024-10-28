@@ -76,6 +76,9 @@ function start() {
   db.data.clear().then(() => {
     console.log('Database deleted');
   }).catch((err) => {
+    eventSourceSnr.close();
+    clearInterval(eventSourceSnrInterval);
+    logError(`<div class="alert">The database is missing! Please restart the page (Ctrl+R)</>`);
     console.error('Database deletion error:', err);
   });
   
@@ -449,29 +452,43 @@ $(function () {
     if (startOn) {
       startOn = false;
       retrieveData().then(function(transformedData) {
-        stop(transformedData);
+          stop(transformedData);
+      }).catch(function (error) {
+          stop();
+          console.log("stopLink: ", error);
       });
     }
   });
 
   $("#resetLink").click(function () {
+    if (startOn) return;
     reset();
   });
 
   $("#lastDataLink").click(function () {
     if (startOn) return;
+    reset();
     retrieveData().then(function (data) {
-      streamedDataProcess(data, "Stored Data");
-    }).catch(function () {
+      if (data.tpVal.length > 0) {
+        modalLoaderOn();
+        streamedDataProcess(data, "Stored Data");
+      }else{
+        modalLoaderOff();
+        logError(`<div class="alert">No data available!</div>`);
+      }
+    }).catch(function (error) {
+      modalLoaderOff();
+      console.log("lastdataLink: ", error);
       logError(`<div class="alert">No data available!</div>`);
     });
   });
 
   $("#delStoreLink").click(function(){ 
+    if (startOn) return;
     retrieveData().then(function (data) {
       if (data.tpVal.length > 0){
           if (!confirm("Are you sure!")) return;
-          db.data.clear ().then(() => {
+          db.data.clear().then(() => {
             reset();
             logError(`<div class="success">Database deleted!</div>`);
             console.log('Database deleted');
@@ -501,6 +518,7 @@ $(function () {
       if (startOn) {
           e.preventDefault(); 
       }else{
+          reset();
           loadSnrJson();
       }
   });
