@@ -24,6 +24,17 @@ function initIdb() {
     return db;
 }
 
+// delete database
+function resetDatabase() {
+    db.delete().then(() => {
+        console.log("Database deleted.");
+        db = initIdb(); 
+        console.log("Database reinitialized.");
+    }).catch((err) => {
+        console.error("Error while deleting the database: ", err);
+    });
+}
+
 // Saving data to IndexedDB
 
 // db.data.add:
@@ -74,6 +85,12 @@ function retrieveData() {
         return transformedData; 
     });
 }
+
+/* function retrieveData() {
+    return db.data.toArray().then(function (result) {
+        return result; 
+    });
+} */
 
 // Query and display data
 retrieveData().then(function(transformedData) {

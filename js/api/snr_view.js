@@ -46,14 +46,9 @@ function checkJSONForm(response) {
 /**
  * Read json file and data processing
  */
-function readJson(file, processJsonDataInChunks) {
+function readJson(file) {
     const reader = new FileReader();
-    if (!file) return; 
-    db.data.clear().then(function () {
-        console.log("readJson: database deleted");
-    }).catch(function (error) {
-        console.error("readJson: ", error);
-    });
+    if (!file) return;
     var fileName = file.name;
     $("#fileName").html(`<div class="success text-center">View - ${fileName}</div>`);
     reader.addEventListener("load", (e) => {
@@ -68,7 +63,6 @@ function readJson(file, processJsonDataInChunks) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
         }
-        processJsonDataInChunks(allData);
         streamedDataProcess(allData, "JSON Data");
     });
     reader.readAsText(file); 
@@ -282,6 +276,7 @@ function updateChartJson(data) {
  * Load function for fileinput when it was click or change on selection.
  */
 function loadSnrJson() {
+
     let fileInputSnr = document.getElementById("fileinput-snr");
 
     fileInputSnr.addEventListener("change", function () {
@@ -299,55 +294,12 @@ function loadSnrJson() {
         var fileExtension = fileName.split('.').pop().toLowerCase();
         var fileType = myFile.type;
         if (fileExtension === 'json'|| fileType === 'application/json') {
-            readJson(myFile, processJsonDataInChunks);
+            readJson(myFile);
         } else {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
         }
     }
 
-    const loadingBar = document.getElementById("loadingBar");
-    const progressBar = document.getElementById("progressBar");
-    const progressText = document.getElementById("progressText");
-    
-
-    function processJsonDataInChunks(data, chunkSize = 1) {
-        loadingBar.style.display = "block";
-    
-        const totalLength = data["tpVal"].length; // Összes adatpont száma
-        let processed = 0;
-    
-        function processNextChunk() {
-            for (let i = processed; i < Math.min(processed + chunkSize, totalLength); i++) {
-                const dataPoint = {}; // Csak az aktuális adatpont feldolgozása
-                
-                for (let key in data) {
-                    if (key != "id") {
-                        dataPoint[key] = data[key][i];
-                    }
-                    
-                }
-    
-                // Az aktuális adatpont feldolgozása
-                saveToIDB(dataPoint);  // Itt meghívhatod a megjelenítést, pl. táblázat, grafikon, stb.
-            }
-    
-            processed += chunkSize;
-            const progressPercent = Math.min(100, (processed / totalLength) * 100);
-    
-            // Betöltési sáv frissítése
-            progressBar.style.width = `${progressPercent}%`;
-            progressText.textContent = `Loading file data into IndexedDB: ${Math.floor(progressPercent)}%`;
-    
-            if (processed < totalLength) {
-                setTimeout(processNextChunk, 0);  // Következő darab feldolgozása
-            } else {
-                loadingBar.style.display = "none";
-                progressText.textContent = "Loading complete!";
-            }
-        }
-    
-        processNextChunk();
-    }
 }
 
 

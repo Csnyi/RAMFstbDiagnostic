@@ -73,14 +73,7 @@ function start() {
     clearInterval(eventSourceSnrInterval);
   }
 
-  db.data.clear().then(() => {
-    console.log('Database deleted');
-  }).catch((err) => {
-    eventSourceSnr.close();
-    clearInterval(eventSourceSnrInterval);
-    logError(`<div class="alert">The database is missing! Please restart the page (Ctrl+R)</>`);
-    console.error('Database deletion error:', err);
-  });
+  resetDatabase();
   
   initSmartSNR();
 
@@ -484,19 +477,6 @@ $(function () {
       console.log("lastdataLink: ", error);
       logError(`<div class="alert">No data available!</div>`);
     });
-  });
-
-  $("#delStoreLink").click(function(){ 
-    if (startOn) return;
-    if (!confirm("Are you sure!")) return;
-    reset();
-    db.data.clear().then(() => {
-      logError(`<div class="success">Database deleted!</div>`);
-      console.log('Database deleted');
-    }).catch((err) => {
-      logError(`<div class="alert">Database deletion error:! ${err}</div>`);
-      console.error('Database deletion error:', err);
-    }); 
   });
 
   $("#toJsonLink").click(function () {
