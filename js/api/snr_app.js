@@ -264,16 +264,20 @@ function lockInfo(infos) {
  * Generate a name for download files
  * @returns date, frequency and polarity
  */
-function nameGenerator() {
+function nameGenerator(tpVal) {
   let d = new Date().toLocaleDateString();
   let dArr = d.split(". ");
   let dString = "";
   dArr.forEach(e => dString += e);
   dString = dString.slice(0, -1);
-  let fString = Number($("#freq").val());
+  /* let fString = Number($("#freq").val());
   let srString = Number($("#sr").val());
   let pString = $("#pol").val();
-  let result = `${dString}_${fString}${pString==0?'H':'V'}${srString}`;
+  let result = `${dString}_${fString}${pString==0?'H':'V'}${srString}`; */
+  let tpValArr = tpVal.split(" ");
+  let tpValString = "";
+  tpValArr.forEach(el => tpValString += el);
+  let result = `${dString}_${tpValString}`;
   return result;
 }
 
@@ -282,17 +286,15 @@ function nameGenerator() {
  */
 function downloadDataAsJSON() {
   retrieveData().then(function (storedData) {
-    //const storedData = data;
     if ( storedData.tpVal.length == 0 ) {
        throw error = "Empty Storage!";
-       return;
     }
     const keys = Object.keys(storedData);
     const length = storedData[keys[1]].length;
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedData));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    let namePartJson = nameGenerator();
+    let namePartJson = nameGenerator(storedData.tpVal[0]);
     downloadAnchorNode.setAttribute("download", `snr_${namePartJson}.json`);
     document.body.appendChild(downloadAnchorNode); // Required for FF
     downloadAnchorNode.click();
@@ -309,7 +311,6 @@ function downloadDataAsExcel() {
   retrieveData().then(function (storedData) {
     if ( storedData.tpVal.length == 0 ) {
        throw error = "Empty Storage!";
-       return;
     }
     const keys = Object.keys(storedData);
     const length = storedData[keys[1]].length; 
@@ -326,7 +327,7 @@ function downloadDataAsExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data");
     // Write the workbook and trigger the download
-    let namePartXlsx = nameGenerator();
+    let namePartXlsx = nameGenerator(storedData.tpVal[0]);
     XLSX.writeFile(wb, `snr_${namePartXlsx}.xlsx`);
   }).catch(function (error) {
     logError(`<div class="alert">No data available! ${error}</div>`);
@@ -471,7 +472,9 @@ $(function () {
     retrieveData().then(function (data) {
       if (data.tpVal.length > 0) {
         modalLoaderOn();
-        streamedDataProcess(data, "Stored Data");
+        setTimeout(function () {
+          streamedDataProcess(data, "Stored Data");
+        }, 0)
       }else{
         modalLoaderOff();
         logError(`<div class="alert">No data available!</div>`);
@@ -485,23 +488,15 @@ $(function () {
 
   $("#delStoreLink").click(function(){ 
     if (startOn) return;
-    retrieveData().then(function (data) {
-      if (data.tpVal.length > 0){
-          if (!confirm("Are you sure!")) return;
-          db.data.clear().then(() => {
-            reset();
-            logError(`<div class="success">Database deleted!</div>`);
-            console.log('Database deleted');
-          }).catch((err) => {
-            logError(`<div class="alert">Database deletion error:! ${err}</div>`);
-            console.error('Database deletion error:', err);
-          });
-      }else{
-          logError(`<div class="alert">No data available!</div>`);
-      }
-    }).catch(function () {
-      logError(`<div class="alert">No data available!</div>`);
-    });  
+    if (!confirm("Are you sure!")) return;
+    reset();
+    db.data.clear().then(() => {
+      logError(`<div class="success">Database deleted!</div>`);
+      console.log('Database deleted');
+    }).catch((err) => {
+      logError(`<div class="alert">Database deletion error:! ${err}</div>`);
+      console.error('Database deletion error:', err);
+    }); 
   });
 
   $("#toJsonLink").click(function () {
