@@ -260,17 +260,10 @@ function lockInfo(infos) {
 function nameGenerator(tpVal) {
   let d = new Date().toLocaleDateString();
   let dArr = d.split(". ");
-  let dString = "";
-  dArr.forEach(e => dString += e);
-  dString = dString.slice(0, -1);
-  /* let fString = Number($("#freq").val());
-  let srString = Number($("#sr").val());
-  let pString = $("#pol").val();
-  let result = `${dString}_${fString}${pString==0?'H':'V'}${srString}`; */
+  let dString = dArr.join("");
   let tpValArr = tpVal.split(" ");
-  let tpValString = "";
-  tpValArr.forEach(el => tpValString += el);
-  let result = `${dString}_${tpValString}`;
+  let tpValString = tpValArr.join("");
+  let result = `${dString}${tpValString}`;
   return result;
 }
 
@@ -288,7 +281,7 @@ function downloadDataAsJSON() {
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     let namePartJson = nameGenerator(storedData.tpVal[0]);
-    downloadAnchorNode.setAttribute("download", `snr_${namePartJson}.json`);
+    downloadAnchorNode.setAttribute("download", `snr${namePartJson}.json`);
     document.body.appendChild(downloadAnchorNode); // Required for FF
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -321,7 +314,7 @@ function downloadDataAsExcel() {
     XLSX.utils.book_append_sheet(wb, ws, "Data");
     // Write the workbook and trigger the download
     let namePartXlsx = nameGenerator(storedData.tpVal[0]);
-    XLSX.writeFile(wb, `snr_${namePartXlsx}.xlsx`);
+    XLSX.writeFile(wb, `snr${namePartXlsx}.xlsx`);
   }).catch(function (error) {
     logError(`<div class="alert">No data available! ${error}</div>`);
   });
@@ -380,57 +373,35 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
  * Initialize the chart
  */
 function initPlotSnr() {
-  Plotly.newPlot('snrChart', [{
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'SNR'
-  }, {
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'LM SNR'
-  }], {
-    title: "Signal-to-noise ratio",
-    xaxis: {
-      title: 'Time',
-      type: 'category', // Change to 'category' to handle local time strings
-      autorange: true // Automatically adjust the x-axis range on new data
-    },
-    yaxis: {
-      title: 'Value',
-      autorange: true // Automatically adjust the y-axis range on new data
-    }
-  }, {
-    displaylogo: false,
-    responsive: true
-  });
-  Plotly.newPlot('voltageChart', [{
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'LNB Voltage'
-  }, {
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'PSU Voltage'
-  }], {
-    title: "Voltages",
-    xaxis: {
-      title: 'Time',
-      type: 'category', // Change to 'category' to handle local time strings
-      autorange: true // Automatically adjust the x-axis range on new data
-    },
-    yaxis: {
-      title: 'Value',
-      autorange: true // Automatically adjust the y-axis range on new data
-    }
-  }, {
-    displaylogo: false,
-    responsive: true
-  });
-};
+  const commonData = { x: [], y: [], type: 'scatter' };
+
+  const snrData = [
+    { ...commonData, name: 'SNR' },
+    { ...commonData, name: 'LM SNR' }
+  ];
+
+  const voltageData = [
+    { ...commonData, name: 'LNB Voltage' },
+    { ...commonData, name: 'PSU Voltage' }
+  ];
+
+  const commonLayout = {
+    xaxis: { title: 'Time', type: 'category', autorange: true },
+    yaxis: { title: 'Value',  autorange: true }
+  };
+
+  const commonConfig = { displaylogo: false, responsive: true };
+
+  Plotly.newPlot('snrChart', snrData, {
+    ...commonLayout, 
+    title: "Signal-to-noise ratio" 
+  }, commonConfig);
+
+  Plotly.newPlot('voltageChart', voltageData, {
+    ...commonLayout, 
+    title: "Voltages" 
+  }, commonConfig);
+}
 
 $(function () {
 

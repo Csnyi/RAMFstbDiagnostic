@@ -346,50 +346,12 @@ function createReport(){
       });
 }
 
-/** Sends the initSmartSNR request to the STB.   */
-/* function initSmartSNR(){
-    var ip = localStorage.getItem("ip");
-
-  var freq = Number(document.getElementById("freq").value);
-  var freq_lo = document.getElementById("freq_lo").value;
-  var freq_if = (freq - freq_lo);
-  var sr = Number(document.getElementById("sr").value);
-  var pol = document.getElementById("pol").value;
-  var tone = document.getElementById("tone").value;
-  var dsq = document.getElementById("dsq").value;
-  var slnbe = document.getElementById("slnbe").value;
-  tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
-  var url = new URL('http://' + ip + '/public');
-  var params = {
-    command: 'initSmartSNR',
-    state: 'on',
-    mode: 'snr',
-    freq: freq_if,
-    sr: sr,
-    pol: pol,
-    tone: tone,
-    diseqc_hex: dsq,
-    smart_lnb_enabled: slnbe
-  };
-  url.search = new URLSearchParams(params).toString();
-
-    fetch(url).then(response => {
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      }).then(data => {
-          console.log('Successful setting:', data);
-          logElem(`The report has been started!`);
-          startEventSource();
-      }).catch(error => {
-          console.error("createReport: ", error);
-          logElem(`<div class="alert">Network Error!</div>`);
-          setProgressBarErr(100, "Connection Error!");
-      });
-}; */
-
-// reportList and reportListNew and the difference, get lastReportName
+/**
+ * reportList and reportListNew and the difference, get lastReportName
+ * @param {*} array1 
+ * @param {*} array2 
+ * @returns 
+ */ 
 
 function dirListDifference(array1, array2) {
   if (!Array.isArray(array1) || !Array.isArray(array2)) {
@@ -542,7 +504,11 @@ async function getLastReport() {
     }
 }
 
-// Asynchronous function to retrieve the report
+/**
+ * Asynchronous function to retrieve the report
+ * @param {string} reportName from report list 
+ * @returns 
+ */
 async function returnReport(reportName) {
     let ip = localStorage.getItem("ip");
     let url = new URL(`http://${ip}/public?command=returnReport&report_name=e:/${reportName}.json`);
@@ -571,56 +537,49 @@ async function returnReport(reportName) {
 
 // charts
 function initPlotCr() {
-    Plotly.newPlot('reportCnr', [{
-        x: [],
-        y: [],
-        type: 'scatter',
-        name: 'CNR'
-    }, {
-        x: [],
-        y: [],
-        type: 'scatter',
-        name: 'LM CNR'
-    }], {
-        title: "CNR report",
-        xaxis: {
-          title: 'Transponder',
-          type: 'category', 
-          autorange: true 
-        },
-        yaxis: {
-          title: 'Values',
-          autorange: true 
-        }
-    }, {
-        displaylogo: false,
-        responsive: true
-    });
+    const commonData = { x: [], y: [], type: 'scatter' };
+    const cnrData = [
+      { ...commonData, name: 'CNR' },
+      { ...commonData, name: 'LM CNR' }
+    ];
+    const rssiData = [
+      { ...commonData, name: 'RSSI'}
+    ];
 
-    Plotly.newPlot('reportRssi', [{
-        x: [],
-        y: [],
-        type: 'scatter',
-        name: 'RSSI'
-    }], {
+    const commonLayout = {
+      xaxis: { title: 'Transponder', type: 'category', autorange: true },
+      yaxis: { title: 'Values', autorange: true }
+    }
+ 
+    const commonConfig = { displaylogo: false, responsive: true };
+
+    Plotly.newPlot('reportCnr', cnrData, {
+        title: "CNR report",
+        ...commonLayout
+    }, commonConfig);
+
+    Plotly.newPlot('reportRssi', rssiData, {
         title: "RSSI report",
-        xaxis: {
-          title: 'Transponder',
-          type: 'category', 
-          autorange: true 
-        },
-        yaxis: {
-          title: 'Values',
-          autorange: true 
-        }
-    }, {
-        displaylogo: false,
-        responsive: true
-    });
+        ...commonLayout
+    }, commonConfig);
 }
 
 function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
-  
+    const commonLayout = {
+      xaxis: {
+          title: 'Transponder',
+          type: 'category',
+          tickmode: "auto",
+          nticks: 8,
+          autorange: true
+      },
+      yaxis: {
+          title: 'Values',
+          autorange: true
+      },
+      hovermode: 'x unified'
+    };
+
     Plotly.react('reportCnr', [{
         x: xFreqData,
         y: ySnrData,
@@ -632,19 +591,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         type: 'scatter',
         name: 'LM CNR'
     }], {
-        title: satName + ' CNR',
-        xaxis: {
-            title: 'Transponder',
-            type: 'category',
-            tickmode:"auto",
-            nticks: 8,
-            autorange: true
-        },
-        yaxis: {
-            title: 'Values',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        title: `${satName} CNR`,
+        ...commonLayout
     });
 
     Plotly.react('reportRssi', [{
@@ -653,19 +601,8 @@ function updateChartCr(xFreqData, ySnrData, yLmsnrData, yRssiData, satName) {
         type: 'scatter',
         name: 'RSSI'
     }], {
-        title: satName + ' RSSI',
-        xaxis: {
-            title: 'Transponder',
-            type: 'category',
-            tickmode:"auto",
-            nticks: 8,
-            autorange: true
-        },
-        yaxis: {
-            title: 'Values',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        title: `${satName} RSSI`,
+        ...commonLayout
     });
 }
 
@@ -837,10 +774,8 @@ function resetLog() {
 
 function jsonName() {
   let d = reportData.date;
-  let dArr = d.split(".");
-  let dString = "";
-  dArr.forEach(e => dString += e);
-  dString = dString.slice(0, -6);
+  let dArr = d.split(" ");
+  let dString = dArr.join("_");
   let pString = reportData.sat_position;
   let nString = reportData.sat_name;
   let result = `${pString}_${nString}_${dString}`;

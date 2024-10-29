@@ -180,25 +180,24 @@ var infoTables = [];
 /**
  * datatables initialization
  */
+
 function initDataTables(dataSet) {
-  var tables = document.querySelectorAll(".datalist");
-  for (let i = 0; i < infoTables.length; i++)  {
-      if (infoTables[i]) {
-        infoTables[i].destroy();
-      } 
-  }
-  for (let i = 0; i < tables.length; i++) {
-      var infoTable = $(tables[i]).DataTable({
-          destroy: true,
-          columns: [
-              { title: 'Value:' },
-              { title: 'Time:' }
-          ],
-          data: dataSet[i],
-          retrieve: true
-      });
-      infoTables.push(infoTable);
-  }
+  let tables = document.querySelectorAll(".datalist");
+
+  infoTables.forEach(table => table.destroy());
+  infoTables = [];
+
+  tables.forEach((tableElement, index) => {
+    let infoTable = $(tableElement).DataTable({
+      columns: [
+        { title: 'Value:' },
+        { title: 'Time:' }
+      ],
+      data: dataSet[index],
+      destroy: true
+    });
+    infoTables.push(infoTable);
+  });
   modalLoaderOff();
 }
 
@@ -218,10 +217,15 @@ function convertTimestamps(timestamps, tpval, lock) {
 /**
  * Update the charts with new data
  */ 
+
 function updateChartJson(data) {
     let timeLabels = convertTimestamps(data.timestamp, data.tpVal, data.lock);
-  
-    // Update SNR chart
+    const commonLayout = {
+        xaxis: { title: 'Time', type: 'category', autorange: true },
+        yaxis: { title: 'Value', autorange: true },
+        hovermode: 'x unified'
+    };
+
     Plotly.react('snrChart', [{
         x: timeLabels,
         y: data.snr,
@@ -233,20 +237,10 @@ function updateChartJson(data) {
         type: 'scatter',
         name: 'LM SNR'
     }], {
-        title: "Signal-to-noise ratio",
-        xaxis: {
-            title: 'Time',
-            type: 'category',
-            autorange: true
-        },
-        yaxis: {
-            title: 'Value',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        ...commonLayout,
+        title: "Signal-to-noise ratio"
     });
 
-    // Update Voltage chart
     Plotly.react('voltageChart', [{
         x: timeLabels,
         y: data.lnb_voltage,
@@ -258,17 +252,8 @@ function updateChartJson(data) {
         type: 'scatter',
         name: 'PSU Voltage'
     }], {
-        title: "Voltages",
-        xaxis: {
-            title: 'Time',
-            type: 'category',
-            autorange: true
-        },
-        yaxis: {
-            title: 'Value',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        ...commonLayout,
+        title: "Voltages"
     });
 }
 

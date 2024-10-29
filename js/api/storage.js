@@ -86,13 +86,10 @@ function retrieveData() {
     });
 }
 
-/* function retrieveData() {
-    return db.data.toArray().then(function (result) {
-        return result; 
-    });
-} */
-
 // Query and display data
 retrieveData().then(function(transformedData) {
     console.log("Transformed data:", transformedData);
 });
+
+// cache handling
+
