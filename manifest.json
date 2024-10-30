@@ -34,9 +34,11 @@
         "js/dataTables.min.js",
         "js/plotly-2.35.2.min.js", 
         "js/xlsx.full.min.js",
+        "js/dexie/dexie.min.js",
         "js/api/about_this.js",
         "js/api/modal.js",
-        "js/api/report_main.js", 
+        "js/api/report_main.js",
+        "js/api/storage.js", 
         "js/api/snr_app.js",
         "js/api/snr_view.js"
       ],
