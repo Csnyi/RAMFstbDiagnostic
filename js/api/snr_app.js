@@ -11,26 +11,14 @@ let collectedData = {
     gamma: [],
     lnb_current: []
 };
-let streamedData = {
-    tpVal: [],
-    timestamp: [],
-    lock: [],
-    carrier_offset: [],
-    snr: [],
-    lm_snr: [],
-    lnb_voltage: [],
-    psu_voltage: [],
-    alfa: [],
-    beta: [],
-    gamma: [],
-    lnb_current: []
-};
+
 let eventSourceSnrInterval;
 let countResponse = 1;
 let countWait = 1;
 let fpsCounter = 0;
 let tpData = '';
 let startOn = false;
+let firstPlotRelay = true;
 
 /**
  * Function for SNR report request
@@ -39,13 +27,15 @@ function initSmartSNR() {
   reset();
   var ip = localStorage.getItem("ip");
   var freq = Number(document.getElementById("freq").value);
-  var freq_lo = document.getElementById("freq_lo").value;
+  var freq_lo = Number(document.getElementById("freq_lo").value);
   var freq_if = (freq - freq_lo);
   var sr = Number(document.getElementById("sr").value);
   var pol = document.getElementById("pol").value;
   var tone = document.getElementById("tone").value;
   var dsq = document.getElementById("dsq").value;
   var slnbe = document.getElementById("slnbe").value;
+  var dmd = document.getElementById("dmd").value;
+  var modulation = document.getElementById("modulation").value;
   tpData = `${freq} ${pol==0?'H':'V'} ${sr}`;
   var url = new URL('http://' + ip + '/public');
   var params = {
@@ -58,17 +48,26 @@ function initSmartSNR() {
     tone: tone,
     diseqc_hex: dsq,
     smart_lnb_enabled: slnbe
+    //dmd: dmd,
+    //modulation: modulation
   };
+  if(dmd == 2){
+    params.freq = (freq/1000);
+    params.dmd = dmd;
+    params.modulation = modulation;
+  }
   url.search = new URLSearchParams(params).toString();
-  xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.send();
-  xhr.onerror = function() { 
+  fetch(url).then(response => {
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+  }).catch(error => {
     logError(`<div class="alert">Network Error!</div>`);
     eventSourceSnr.close();
     clearInterval(eventSourceSnrInterval);
     log("");
-  };
+    console.log("initSNR: ", error);
+  });
 }
 
 /**
@@ -77,11 +76,14 @@ function initSmartSNR() {
  */
 
 function start() {
+
   if (eventSourceSnr) {
     eventSourceSnr.close();
     clearInterval(eventSourceSnrInterval);
   }
 
+  resetDatabase();
+  
   initSmartSNR();
 
   let ip = localStorage.getItem("ip");
@@ -123,7 +125,20 @@ function start() {
         collectedData[key].push(response[key]);
       }
     }
+    if (response.tune_mode == 0) { 
+        let rssi_dbuv;
+        let dmd = $("#dmd").val();
+        if (dmd == 0) {
+            rssi_dbuv = (112 - +response.lpg / 100).toFixed(0);
+        }
+        else {
+            rssi_dbuv = (+response.lpg + 107.5).toFixed(0);
+        }
+        $("#RSSI_dBuV").html(rssi_dbuv);
+        //console.log(rssi_dbuv);
+    }
     fpsCounter++;
+    //log(`${e.data}`)
   });
   // Start interval timer to process data every second
   eventSourceSnrInterval = setInterval(processData, 1000);
@@ -132,32 +147,16 @@ function start() {
 /**
  * when "Stop" button pressed
  */  
-function stop() { 
-  if (eventSourceSnr == undefined) {
-     logError(`<p class="warn">No request!</p>`);
-  }else{
-
-    if (eventSourceSnr.readyState == 2) {
-      if (streamedData.timestamp.length > 0) {  
-        logError(`Request stopped!<br><br>
-          Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
-          Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
-        `);
-      }else{
-        logError(`<p class="warn">No request!</p>`);
-      }
-    }
-
-    if (eventSourceSnr.readyState == 1) {
-      eventSourceSnr.close();
-      clearInterval(eventSourceSnrInterval);
-      $("#fpsSnr").html(0);
-      logError(`Request stopped!<br><br>
-        Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
-        Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
-      `);
-    }
-
+function stop(streamedData) { 
+  if (eventSourceSnr) {
+    eventSourceSnr.close();
+    clearInterval(eventSourceSnrInterval);
+    $("#fpsSnr").html(0);
+    $("#RSSI_dBuV").html(0);
+    logError(`Request stopped!<br><br>
+      Start: ${new Date(streamedData.timestamp[0]).toLocaleString()} <br>
+      Stop: ${new Date(streamedData.timestamp[streamedData.timestamp.length-1]).toLocaleString()} <br>
+    `);
   }
 }
 
@@ -169,22 +168,10 @@ function reset() {
   logError("");
   log("");
   $("#fileName").html("");
+  $("#progressText").html("");
   $("#fpsSnr").html(0);
+  $("#RSSI_dBuV").html(0);
   collectedData = {
-    lock: [],
-    carrier_offset: [],
-    snr: [],
-    lm_snr: [],
-    lnb_voltage: [],
-    psu_voltage: [],
-    alfa: [],
-    beta: [],
-    gamma: [],
-    lnb_current: []
-  };
-  streamedData = {
-    tpVal: [],
-    timestamp: [],
     lock: [],
     carrier_offset: [],
     snr: [],
@@ -200,6 +187,7 @@ function reset() {
   countWait = 1;
   fpsCounter = 0;
   tpData = '';
+  firstPlotRelay = true;
 }
 
 /**
@@ -219,27 +207,34 @@ function processData() {
     let avgBeta = average(collectedData.beta);
     let avgGamma = average(collectedData.gamma);
     let avgLnbCurrent = average(collectedData.lnb_current);
-
+    
     //data to json end xlsx
     let timeStamp = new Date().getTime();
-    streamedData.timestamp.push(timeStamp);
-    streamedData.tpVal.push(tpData);
-    streamedData.lock.push(average(collectedData.lock));
-    streamedData.carrier_offset.push(avgCarrierOffset);
-    streamedData.snr.push(avgSnr);
-    streamedData.lm_snr.push(avgLmSnr);
-    streamedData.lnb_voltage.push(avgLnbVoltage);
-    streamedData.psu_voltage.push(avgPsuVoltage);
-    streamedData.alfa.push(avgAlfa);
-    streamedData.beta.push(avgBeta);
-    streamedData.gamma.push(avgGamma);
-    streamedData.lnb_current.push(avgLnbCurrent);
+
+    let dataPerSec = {
+        tpVal: tpData,
+        timestamp: timeStamp,
+        lock: average(collectedData.lock),
+        carrier_offset: avgCarrierOffset,
+        snr: avgSnr,
+        lm_snr: avgLmSnr,
+        lnb_voltage: avgLnbVoltage,
+        psu_voltage: avgPsuVoltage,
+        alfa: avgAlfa,
+        beta: avgBeta,
+        gamma: avgGamma,
+        lnb_current: avgLnbCurrent
+    };
+    
+    saveToIDB(dataPerSec);
 
     // set time of measure
     let setTime = document.getElementById("setTime").value;
     if (countResponse == setTime*60) {
       startOn = false;
-      stop();
+      retrieveData().then(function(transformedData) {
+        stop(transformedData);
+      });
     }
    
     log(`<p>Processed Data: ${countResponse++} </p>
@@ -248,7 +243,7 @@ function processData() {
       Beta: ${avgBeta}°, <br>
       Gamma: ${avgGamma}°, <br>
       LNB Current: ${avgLnbCurrent} mA <br>
-      Carrier Offset: ${(avgCarrierOffset/1000).toFixed(1)} MHz
+      Carrier Offset: ${(avgCarrierOffset/1000).toFixed(1)} MHz 
     </div>`);
     
     updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage); // Update the chart with the new average values
@@ -286,16 +281,13 @@ function lockInfo(infos) {
  * Generate a name for download files
  * @returns date, frequency and polarity
  */
-function nameGenerator() {
+function nameGenerator(tpVal) {
   let d = new Date().toLocaleDateString();
   let dArr = d.split(". ");
-  let dString = "";
-  dArr.forEach(e => dString += e);
-  dString = dString.slice(0, -1);
-  let fString = Number($("#freq").val());
-  let srString = Number($("#sr").val());
-  let pString = $("#pol").val();
-  let result = `${dString}_${fString}${pString==0?'H':'V'}${srString}`;
+  let dString = dArr.join("");
+  let tpValArr = tpVal.split(" ");
+  let tpValString = tpValArr.join("");
+  let result = `${dString}${tpValString}`;
   return result;
 }
 
@@ -303,35 +295,40 @@ function nameGenerator() {
  *  Function to download collected data as JSON
  */
 function downloadDataAsJSON() {
-  const keys = Object.keys(streamedData);
-  const length = streamedData[keys[1]].length;
-  //console.log(streamedData[keys[0]]);
-  if (length > 0) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(streamedData));
+  retrieveData().then(function (storedData) {
+    if ( storedData.tpVal.length == 0 ) {
+       throw error = "Empty Storage!";
+    }
+    const keys = Object.keys(storedData);
+    const length = storedData[keys[1]].length;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedData));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    let namePartJson = nameGenerator();
-    downloadAnchorNode.setAttribute("download", `snr_${namePartJson}.json`);
+    let namePartJson = nameGenerator(storedData.tpVal[0]);
+    downloadAnchorNode.setAttribute("download", `snr${namePartJson}.json`);
     document.body.appendChild(downloadAnchorNode); // Required for FF
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-  }else{
-    logError(`<div class="alert">No data available!</div>`);
-  }
+  }).catch(function (error) {
+    logError(`<div class="alert">No data available! ${error} </div>`);
+  });
 }
 
 /**
  * Function to convert JSON data to Excel and download
  */ 
 function downloadDataAsExcel() {
-  const keys = Object.keys(streamedData);
-  const length = streamedData[keys[1]].length; 
-  if (length > 0) {  
+  retrieveData().then(function (storedData) {
+    if ( storedData.tpVal.length == 0 ) {
+       throw error = "Empty Storage!";
+    }
+    const keys = Object.keys(storedData);
+    const length = storedData[keys[1]].length; 
     const dataArray = [];
     for (let i = 0; i < length; i++) {
       const row = {};
       keys.forEach(key => {
-        row[key] = streamedData[key][i];
+        row[key] = storedData[key][i];
       });
       dataArray.push(row);
     }
@@ -340,11 +337,11 @@ function downloadDataAsExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data");
     // Write the workbook and trigger the download
-    let namePartXlsx = nameGenerator();
-    XLSX.writeFile(wb, `snr_${namePartXlsx}.xlsx`);
-  }else{
-    logError(`<div class="alert">No data available!</div>`)
-  }
+    let namePartXlsx = nameGenerator(storedData.tpVal[0]);
+    XLSX.writeFile(wb, `snr${namePartXlsx}.xlsx`);
+  }).catch(function (error) {
+    logError(`<div class="alert">No data available! ${error}</div>`);
+  });
 }
 
 function log(msg) {
@@ -376,81 +373,59 @@ function updateChartSnr(infoLock, avgSnr, avgLmSnr, avgLnbVoltage, avgPsuVoltage
     y: [[avgSnr], [avgLmSnr]]
   }, [0, 1]);
 
-  // Automatically adjust the x-axis and y-axis ranges
-  Plotly.relayout('snrChart', {
-    'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true, // Automatically adjust the y-axis range
-    "hovermode": 'x unified'
-  });
-
   Plotly.extendTraces('voltageChart', {
     x: [[timeLabel], [timeLabel]],
     y: [[avgLnbVoltage], [avgPsuVoltage]]
-  }, [0, 1]);
+  }, [0, 1])
 
-  // Automatically adjust the x-axis and y-axis ranges
-  Plotly.relayout('voltageChart', {
-    'xaxis.autorange': true, // Automatically adjust the x-axis range
-    'yaxis.autorange': true,  // Automatically adjust the y-axis range
-    "hovermode": 'x unified'
-  });
+  if (firstPlotRelay){
+    Plotly.relayout('snrChart', {
+      'xaxis.autorange': true, 
+      'yaxis.autorange': true, 
+      "hovermode": 'x unified'
+    });
+    Plotly.relayout('voltageChart', {
+      'xaxis.autorange': true, 
+      'yaxis.autorange': true,  
+      "hovermode": 'x unified'
+    });
+    firstPlotRelay = false;
+  };
 }
 
 /**
  * Initialize the chart
  */
 function initPlotSnr() {
-  Plotly.newPlot('snrChart', [{
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'SNR'
-  }, {
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'LM SNR'
-  }], {
-    title: "Signal-to-noise ratio",
-    xaxis: {
-      title: 'Time',
-      type: 'category', // Change to 'category' to handle local time strings
-      autorange: true // Automatically adjust the x-axis range on new data
-    },
-    yaxis: {
-      title: 'Value',
-      autorange: true // Automatically adjust the y-axis range on new data
-    }
-  }, {
-    displaylogo: false,
-    responsive: true
-  });
-  Plotly.newPlot('voltageChart', [{
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'LNB Voltage'
-  }, {
-    x: [],
-    y: [],
-    type: 'scatter',
-    name: 'PSU Voltage'
-  }], {
-    title: "Voltages",
-    xaxis: {
-      title: 'Time',
-      type: 'category', // Change to 'category' to handle local time strings
-      autorange: true // Automatically adjust the x-axis range on new data
-    },
-    yaxis: {
-      title: 'Value',
-      autorange: true // Automatically adjust the y-axis range on new data
-    }
-  }, {
-    displaylogo: false,
-    responsive: true
-  });
-};
+  const commonData = { x: [], y: [], type: 'scatter' };
+
+  const snrData = [
+    { ...commonData, name: 'SNR' },
+    { ...commonData, name: 'LM SNR' }
+  ];
+
+  const voltageData = [
+    { ...commonData, name: 'LNB Voltage' },
+    { ...commonData, name: 'PSU Voltage' }
+  ];
+
+  const commonLayout = {
+    xaxis: { title: 'Time', type: 'category', autorange: true },
+    yaxis: { title: 'Value',  autorange: true }
+  };
+
+  const commonConfig = { displaylogo: false, responsive: true };
+
+  Plotly.newPlot('snrChart', snrData, {
+    ...commonLayout, 
+    title: "Signal-to-noise ratio" 
+  }, commonConfig);
+
+  Plotly.newPlot('voltageChart', voltageData, {
+    ...commonLayout, 
+    title: "Voltages" 
+  }, commonConfig);
+}
 
 $(function () {
 
@@ -463,17 +438,40 @@ $(function () {
   });
 
   $("#stopLink").click(function () {
-    startOn = false;
-    stop();
+    if (startOn) {
+      startOn = false;
+      retrieveData().then(function(transformedData) {
+          stop(transformedData);
+      }).catch(function (error) {
+          stop();
+          console.log("stopLink: ", error);
+      });
+    }
   });
 
   $("#resetLink").click(function () {
+    if (startOn) return;
     reset();
   });
 
-  $("#lastData").click(function () {
+  $("#lastDataLink").click(function () {
     if (startOn) return;
-    loadLastData();
+    reset();
+    retrieveData().then(function (data) {
+      if (data.tpVal.length > 0) {
+        modalLoaderOn();
+        setTimeout(function () {
+          streamedDataProcess(data, "Stored Data");
+        }, 0)
+      }else{
+        modalLoaderOff();
+        logError(`<div class="alert">No data available!</div>`);
+      }
+    }).catch(function (error) {
+      modalLoaderOff();
+      console.log("lastdataLink: ", error);
+      logError(`<div class="alert">No data available!</div>`);
+    });
   });
 
   $("#toJsonLink").click(function () {
@@ -490,6 +488,7 @@ $(function () {
       if (startOn) {
           e.preventDefault(); 
       }else{
+          reset();
           loadSnrJson();
       }
   });

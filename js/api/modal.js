@@ -3,11 +3,11 @@
 */
 function toggleModal(modalClass, btnClass, spanClass){
   // Get the modal
-  var modals = document.querySelectorAll(modalClass);
+  let modals = document.querySelectorAll(modalClass);
   // Get the button that opens the modal
-  var btns = document.querySelectorAll(btnClass);
+  let btns = document.querySelectorAll(btnClass);
   // Get the <span> element that closes the modal
-  var spans = document.querySelectorAll(spanClass);
+  let spans = document.querySelectorAll(spanClass);
 
   // Set up event listener for 'esc' key press
   document.addEventListener("keydown", function(event) {
@@ -51,7 +51,7 @@ function toggleModal(modalClass, btnClass, spanClass){
 
 toggleModal(".modal", ".modalBtn", ".close");
 
-var modalScan = document.querySelector('.modal-scan');
+let modalScan = document.querySelector('.modal-scan');
 
 function modalScanOn() {
   modalScan.style.display = "block";
@@ -61,3 +61,12 @@ function modalScanOff() {
   modalScan.style.display = "none";
 }
 
+let modalLoader = document.querySelector('.modal-loader');
+
+function modalLoaderOn() {
+  modalLoader.style.display = "block";
+}
+
+function modalLoaderOff() {
+  modalLoader.style.display = "none";
+}

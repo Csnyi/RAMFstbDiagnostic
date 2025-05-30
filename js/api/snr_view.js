@@ -46,37 +46,27 @@ function checkJSONForm(response) {
 /**
  * Read json file and data processing
  */
-function readJson() {
-    const [file] = document.getElementById('fileinput-snr').files;
-    const reader = new FileReader(); 
-    if (file) {
-        reader.readAsText(file);
-    };
+function readJson(file) {
+    const reader = new FileReader();
+    if (!file) return;
     var fileName = file.name;
-
     $("#fileName").html(`<div class="success text-center">View - ${fileName}</div>`);
-
-    reader.addEventListener("load", () => {
-
-        var response = reader.result;
-        var jsonValid = checkJSONForm(response);
-        var containsLock = checkLock(response);
-        if (!containsLock || !jsonValid) {
+    reader.addEventListener("load", (e) => {
+        const response = e.target.result;
+        if (!checkLock(response) || !checkJSONForm(response)) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
-        };
+        }
+
         var allData = JSON.parse(response);
-        var validJsonKeys = validateJsonKey(allData);
-        if (!validJsonKeys) {
+        if (!validateJsonKey(allData)) {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect JSON for this.</div>`);
             return;
-        };
-
-        // data processing
+        }
         streamedDataProcess(allData, "JSON Data");
-
-    }, false); 
-};
+    });
+    reader.readAsText(file); 
+}
 
 /**
  * Formating the data details
@@ -86,20 +76,6 @@ function detailsData(arr, unit) {
     arr.forEach(e => response.push(`${e.toFixed(2)}${unit}`));
     return response
 }
-
-/**
- * Show last measured data
- */
-function loadLastData() {
-    const keys = Object.keys(streamedData);
-    const length = streamedData[keys[1]].length; 
-    if (length > 0) {
-      $("#fileName").html(`<div class="success">View - Last Data</div>`);
-      streamedDataProcess(streamedData, "Last Data");
-    }else{
-      logError(`<div class="alert">No data available!</div>`);
-    }
-  };
 
 /** 
  * Data processing to streamed data 
@@ -204,25 +180,26 @@ var infoTables = [];
 /**
  * datatables initialization
  */
+
 function initDataTables(dataSet) {
-  var tables = document.querySelectorAll(".datalist");
-  for (let i = 0; i < infoTables.length; i++)  {
-      if (infoTables[i]) {
-        infoTables[i].destroy();
-      } 
-  }
-  for (let i = 0; i < tables.length; i++) {
-      var infoTable = $(tables[i]).DataTable({
-          destroy: true,
-          columns: [
-              { title: 'Value:' },
-              { title: 'Time:' }
-          ],
-          data: dataSet[i],
-          retrieve: true
-      });
-      infoTables.push(infoTable);
-  }
+  let tables = document.querySelectorAll(".datalist");
+
+  infoTables.forEach(table => table.destroy());
+  infoTables = [];
+
+  tables.forEach((tableElement, index) => {
+    let infoTable = $(tableElement).DataTable({
+      columns: [
+        { title: 'Value:' },
+        { title: 'Time:' }
+      ],
+      data: dataSet[index],
+      destroy: true
+    });
+    infoTables.push(infoTable);
+  });
+  modalLoaderOff();
+  reportComplete();
 }
 
 /* load Chart */
@@ -241,10 +218,15 @@ function convertTimestamps(timestamps, tpval, lock) {
 /**
  * Update the charts with new data
  */ 
+
 function updateChartJson(data) {
     let timeLabels = convertTimestamps(data.timestamp, data.tpVal, data.lock);
-  
-    // Update SNR chart
+    const commonLayout = {
+        xaxis: { title: 'Time', type: 'category', autorange: true },
+        yaxis: { title: 'Value', autorange: true },
+        hovermode: 'x unified'
+    };
+
     Plotly.react('snrChart', [{
         x: timeLabels,
         y: data.snr,
@@ -256,20 +238,10 @@ function updateChartJson(data) {
         type: 'scatter',
         name: 'LM SNR'
     }], {
-        title: "Signal-to-noise ratio",
-        xaxis: {
-            title: 'Time',
-            type: 'category',
-            autorange: true
-        },
-        yaxis: {
-            title: 'Value',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        ...commonLayout,
+        title: "Signal-to-noise ratio"
     });
 
-    // Update Voltage chart
     Plotly.react('voltageChart', [{
         x: timeLabels,
         y: data.lnb_voltage,
@@ -281,17 +253,8 @@ function updateChartJson(data) {
         type: 'scatter',
         name: 'PSU Voltage'
     }], {
-        title: "Voltages",
-        xaxis: {
-            title: 'Time',
-            type: 'category',
-            autorange: true
-        },
-        yaxis: {
-            title: 'Value',
-            autorange: true
-        },
-        hovermode: 'x unified'
+        ...commonLayout,
+        title: "Voltages"
     });
 }
 
@@ -299,18 +262,16 @@ function updateChartJson(data) {
  * Load function for fileinput when it was click or change on selection.
  */
 function loadSnrJson() {
-    let fileInputSnr = document.getElementById("fileinput-snr");
 
-    fileInputSnr.addEventListener("click", function () {
-        if (fileInputSnr.files.length > 0) {
-            handleFile(fileInputSnr.files[0]);
-        }
-    });
+    let fileInputSnr = document.getElementById("fileinput-snr");
 
     fileInputSnr.addEventListener("change", function () {
         if (fileInputSnr.files.length > 0) {
+            modalLoaderOn();
+            disablePageRefresh();
             handleFile(fileInputSnr.files[0]);
         } else {
+            console.log("Cancel button was clicked, no file selected.");
             logError("No JSON selected!");
         }
     });
@@ -318,12 +279,14 @@ function loadSnrJson() {
     function handleFile(myFile) {
         var fileName = myFile.name;
         var fileExtension = fileName.split('.').pop().toLowerCase();
-        if (fileExtension === 'json') {
-            readJson();
+        var fileType = myFile.type;
+        if (fileExtension === 'json'|| fileType === 'application/json') {
+            readJson(myFile);
         } else {
             logError(`<div class="alert">The selected <span style="cursor: default;" title="${fileName}">[file]</span> has an incorrect extension.</div>`);
         }
     }
+
 }
 
 

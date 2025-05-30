@@ -104,6 +104,10 @@ ul a {
     background-color: #9e7728;
 }
 
+.text-center {
+    text-align: center;
+}
+
 #conn-progress-container, #progress-container, #progress-container-scan {
     width: 100%;
     background-color: #f3f3f3;
@@ -232,3 +236,19 @@ hr {
     .col-11 {width: 91.66%;}
     .col-12 {width: 100%;}
 }
+
+.loader {
+    border: 16px solid #f3f3f3; 
+    border-top: 16px solid #5f9ea0;  
+    border-bottom: 16px solid #5f9ea0; 
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    margin: auto;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
