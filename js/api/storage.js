@@ -1,95 +1,87 @@
-/** Declaring a global variable */
-var db = initIdb();
+/**
+ * storage.js
+ * IndexedDB persistence layer via Dexie.js.
+ * Provides save, retrieve and reset operations for SNR measurement data.
+ */
 
-/** IDB handling Dexie */
+const DB_NAME = 'snrDB';
+const DB_VERSION = 1;
 
-// Initialising Dexie
+const DATA_SCHEMA = `
+    ++id,
+    tpVal,
+    timestamp,
+    lock,
+    carrier_offset,
+    snr,
+    lm_snr,
+    lnb_voltage,
+    psu_voltage,
+    alfa,
+    beta,
+    gamma,
+    lnb_current
+`;
+
+/** @type {Dexie} */
+let db = initIdb();
+
 function initIdb() {
-    var db = new Dexie('snrDB');
-    db.version(1).stores({
-    data: `++id,
-        tpVal,
-        timestamp,
-        lock,
-        carrier_offset,
-        snr,
-        lm_snr,
-        lnb_voltage,
-        psu_voltage,
-        alfa,
-        beta,
-        gamma,
-        lnb_current`
-    }); 
-    return db;
+    const instance = new Dexie(DB_NAME);
+    instance.version(DB_VERSION).stores({ data: DATA_SCHEMA });
+    return instance;
 }
 
-// delete database
-function resetDatabase() {
-    db.delete().then(() => {
-        console.log("Database deleted.");
-        db = initIdb(); 
-        console.log("Database reinitialized.");
-    }).catch((err) => {
-        console.error("Error while deleting the database: ", err);
-    });
-}
-
-// Saving data to IndexedDB
-
-// db.data.add:
-// array the data points/id/sec in processData
+/**
+ * Saves a single data-point object to IndexedDB.
+ * @param {Object} streamedData
+ */
 function saveToIDB(streamedData) {
-    db.data.add(streamedData).then(function() {
-        console.log("Data successfully saved to IndexedDB");
-    }).catch(function(error) {
-        console.log('Error adding data to IndexedDB: ' + error);
-    });
+    db.data.add(streamedData)
+        .then(() => console.log('Data saved to IndexedDB.'))
+        .catch(err => console.error('saveToIDB error:', err));
 }
 
-// database query
+/**
+ * Retrieves all stored records and returns them as a column-oriented object
+ * (each key maps to an array of values), which is the format expected by the charts.
+ * @returns {Promise<Object>}
+ */
 function retrieveData() {
-    return db.data.toArray().then(function (result) {
-        const transformedData = {
-            tpVal: [],
-            timestamp: [],
-            lock: [],
+    return db.data.toArray().then(records => {
+        const result = {
+            tpVal:          [],
+            timestamp:      [],
+            lock:           [],
             carrier_offset: [],
-            snr: [],
-            lm_snr: [],
-            lnb_voltage: [],
-            psu_voltage: [],
-            alfa: [],
-            beta: [],
-            gamma: [],
-            lnb_current: [],
-            id: []
+            snr:            [],
+            lm_snr:         [],
+            lnb_voltage:    [],
+            psu_voltage:    [],
+            alfa:           [],
+            beta:           [],
+            gamma:          [],
+            lnb_current:    [],
+            id:             []
         };
 
-        result.forEach(item => {
-            transformedData.tpVal.push(item.tpVal);
-            transformedData.timestamp.push(item.timestamp);
-            transformedData.lock.push(item.lock);
-            transformedData.carrier_offset.push(item.carrier_offset);
-            transformedData.snr.push(item.snr);
-            transformedData.lm_snr.push(item.lm_snr);
-            transformedData.lnb_voltage.push(item.lnb_voltage);
-            transformedData.psu_voltage.push(item.psu_voltage);
-            transformedData.alfa.push(item.alfa);
-            transformedData.beta.push(item.beta);
-            transformedData.gamma.push(item.gamma);
-            transformedData.lnb_current.push(item.lnb_current);
-            transformedData.id.push(item.id);
+        records.forEach(item => {
+            Object.keys(result).forEach(key => result[key].push(item[key]));
         });
 
-        return transformedData; 
+        return result;
     });
 }
 
-// Query and display data
-retrieveData().then(function(transformedData) {
-    console.log("Transformed data:", transformedData);
-});
-
-// cache handling
-
+/**
+ * Drops and re-creates the database, effectively clearing all stored data.
+ */
+function resetDatabase() {
+    db.delete()
+        .then(() => {
+            console.log('Database deleted.');
+            db = initIdb();
+            console.log('Database re-initialised.');
+        })
+        .catch(err => console.error('resetDatabase error:', err));
+}

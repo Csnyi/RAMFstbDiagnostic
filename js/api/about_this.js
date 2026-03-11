@@ -86,37 +86,35 @@ var modalHelpCr = `
 var modalHelpSnr = `
     <table class="helpinfo" style="width:100%">
         <tr>
-            <th>
-                Measurement
-            </th>
+            <th>Measurement</th>
         </tr>
         <tr>
             <td>
-                If you do not enter a time (in minutes), 
-                it will measure until you stop it with Stop.
-                It stops automatically when the time is set.
-                After measurement, export the data to json so that you can look back at the results in the API.
-                If you also want to export to Excel, you can do so directly after the measurement.
-                The reason for this is that the data is stored in memory to the display of the graph 
-                and the data is lost when updating or closing the window.
+                If you do not enter a time (in minutes), the measurement runs until you stop it manually with the Stop button.
+                If a duration is set, it stops automatically when the time is reached.
+                After the measurement, export the data to JSON so you can reload and review the results later.
+                Excel export is also available directly after the measurement.
+                Note: measured data is held in memory — it will be lost if you refresh or close the window.
             </td>
         </tr>
         <tr>
-            <th> 
-                View
-            </th> 
+            <th>View</th>
         </tr>
-        <tr> 
+        <tr>
             <td>
+                Use <b>Last Report</b> to reload the most recent measurement from the local database and display it on the charts.
+                Use <b>Open JSON</b> to load a previously exported JSON file and visualise it.
+                Click on any metric button (Alfa, Beta, Gamma, Lock, LNB Current, Carrier Offset) to open a detailed data table for that value.
             </td>
         </tr>
         <tr>
-            <th>
-                Setup
-            </th>
+            <th>Setup</th>
         </tr>
         <tr>
             <td>
+                Enter the transponder parameters manually, or switch to the Spectrum view, select a transponder from the list and it will be filled in automatically.<br><br>
+                <b>Important:</b> always press <b>Reset</b> before switching back to the Spectrum view to create a new report.
+                Until Reset is pressed, the device may report itself as busy and block the next scan.
             </td>
         </tr>
     </table>

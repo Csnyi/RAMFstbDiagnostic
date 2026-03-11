@@ -1,6 +1,41 @@
+/* =============================================================================
+   CSS custom properties
+   ============================================================================= */
+
+:root {
+    --color-primary:      #5f9ea0;
+    --color-primary-dark: #707070;
+    --color-danger:       #a05f5f;
+    --color-warning:      #9e7728;
+    --color-success:      var(--color-primary);
+
+    --color-bg-progress:  #f3f3f3;
+    --color-text-light:   #ffffff;
+    --color-text-dark:    #000000;
+    --color-border:       #ccc;
+    --color-modal-bg:     rgba(0, 0, 0, 0.4);
+    --color-close:        #aaa;
+
+    --border-radius:      4px;
+    --box-shadow-sm:      0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --box-shadow-modal:   0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+}
+
+/* =============================================================================
+   Reset / base
+   ============================================================================= */
+
 * {
     box-sizing: border-box;
 }
+
+html {
+    font-family: "Lucida Sans", sans-serif;
+}
+
+/* =============================================================================
+   Layout — grid
+   ============================================================================= */
 
 .row::after {
     content: "";
@@ -13,21 +48,74 @@
     padding: 15px;
 }
 
-html {
-    font-family: "Lucida Sans", sans-serif;
+/* Mobile first: full width */
+[class*="col-"] {
+    width: 100%;
 }
+
+@media only screen and (min-width: 600px) {
+    /* Tablet */
+    .col-s-1  { width: 8.33%;  }
+    .col-s-2  { width: 16.66%; }
+    .col-s-3  { width: 25%;    }
+    .col-s-4  { width: 33.33%; }
+    .col-s-5  { width: 41.66%; }
+    .col-s-6  { width: 50%;    }
+    .col-s-7  { width: 58.33%; }
+    .col-s-8  { width: 66.66%; }
+    .col-s-9  { width: 75%;    }
+    .col-s-10 { width: 83.33%; }
+    .col-s-11 { width: 91.66%; }
+    .col-s-12 { width: 100%;   }
+}
+
+@media only screen and (min-width: 768px) {
+    /* Desktop */
+    .col-1  { width: 8.33%;  }
+    .col-2  { width: 16.66%; }
+    .col-3  { width: 25%;    }
+    .col-4  { width: 33.33%; }
+    .col-5  { width: 41.66%; }
+    .col-6  { width: 50%;    }
+    .col-7  { width: 58.33%; }
+    .col-8  { width: 66.66%; }
+    .col-9  { width: 75%;    }
+    .col-10 { width: 83.33%; }
+    .col-11 { width: 91.66%; }
+    .col-12 { width: 100%;   }
+}
+
+/* =============================================================================
+   Views — initially hidden
+   ============================================================================= */
 
 .createReport,
 .initSmartSNR {
     display: none;
 }
 
+/* =============================================================================
+   Header / footer
+   ============================================================================= */
+
 .header {
-    background-color: #5f9ea0;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
     padding: 15px;
     text-align: center;
 }
+
+.footer {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    text-align: center;
+    font-size: 12px;
+    padding: 15px;
+}
+
+/* =============================================================================
+   Menu
+   ============================================================================= */
 
 .menu ul {
     list-style-type: none;
@@ -38,26 +126,43 @@ html {
 .menu li {
     padding: 8px;
     margin-bottom: 7px;
-    background-color: #5f9ea0;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
     cursor: pointer;
-    border-left: 6px solid #707070;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    border-left: 6px solid var(--color-primary-dark);
+    box-shadow: var(--box-shadow-sm);
 }
 
 .menu li:hover {
-    background-color: #707070;
+    background-color: var(--color-primary-dark);
 }
 
-input[type=text],
-input[type=number],
+.menu li.del {
+    background-color: var(--color-danger);
+}
+
+.menu li.del:hover {
+    background-color: var(--color-primary-dark);
+}
+
+ul a {
+    text-decoration: none;
+    color: var(--color-text-light);
+}
+
+/* =============================================================================
+   Form controls
+   ============================================================================= */
+
+input[type="text"],
+input[type="number"],
 select {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
     display: inline-block;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
     box-sizing: border-box;
 }
 
@@ -65,98 +170,9 @@ input[type="file"] {
     display: none;
 }
 
-.menu li.del {
-    background-color: #a05f5f;
-}
-
-.menu li.del:hover {
-    background-color: #707070;
-}
-
-ul a {
-    text-decoration: none;
-    color: #fff;
-}
-
-.success,
-.alert,
-.warn {
-    color: #fff;
-    width: 100%;
-    height: auto;
-    text-align: left;
-    padding: 12px 20px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-.success {
-    background-color: #5f9ea0;
-}
-
-.alert {
-    background-color: #a05f5f;
-}
-
-.warn {
-    background-color: #9e7728;
-}
-
-.text-center {
-    text-align: center;
-}
-
-#conn-progress-container, #progress-container, #progress-container-scan {
-    width: 100%;
-    background-color: #f3f3f3;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    height: 30px;
-    margin-top: 20px;
-}
-
-#conn-progress-bar, #progress-bar, #progress-bar-scan {
-    width: 0%;
-    height: 100%;
-    background-color: #5f9ea0;
-    text-align: center;
-    line-height: 30px;
-    color: white;
-    border-radius: 5px;
-}
-
-.content {
-    margin: 15px;
-}
-
-.helpinfo table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-}
-  
-.helpinfo td, .helpinfo th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-}
-  
-.helpinfo tr:nth-child(even) {
-    background-color: #dddddd;
-}
-
-hr {
-    /*display: block;*/
-    margin-top: 2em;
-    margin-bottom: 2em;
-    height: 2px;
-    border-width: 0;
-    color: #5f9ea0;
-    background-color: #5f9ea0;
-    width: 100%;
-}
+/* =============================================================================
+   List
+   ============================================================================= */
 
 .list ul {
     list-style-type: none;
@@ -167,12 +183,77 @@ hr {
 .list li {
     padding: 8px;
     margin-bottom: 7px;
-    background-color: #5f9ea4;
-    color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    box-shadow: var(--box-shadow-sm);
 }
 
-/* progress bar */
+/* =============================================================================
+   Aside
+   ============================================================================= */
+
+.aside {
+    background-color: var(--color-primary);
+    padding: 15px;
+    color: var(--color-text-light);
+    text-align: left;
+    font-size: 14px;
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* =============================================================================
+   Status / alert / warning banners
+   ============================================================================= */
+
+.success,
+.alert,
+.warn {
+    color: var(--color-text-light);
+    width: 100%;
+    height: auto;
+    text-align: left;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+}
+
+.success { background-color: var(--color-primary); }
+.alert   { background-color: var(--color-danger);  }
+.warn    { background-color: var(--color-warning); }
+
+.text-center {
+    text-align: center;
+}
+
+/* =============================================================================
+   Progress bars
+   ============================================================================= */
+
+#conn-progress-container,
+#progress-container,
+#progress-container-scan {
+    width: 100%;
+    background-color: var(--color-bg-progress);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    height: 30px;
+    margin-top: 20px;
+}
+
+#conn-progress-bar,
+#progress-bar,
+#progress-bar-scan {
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-primary);
+    text-align: center;
+    line-height: 30px;
+    color: var(--color-text-light);
+    border-radius: 5px;
+}
+
 #streamProgress {
     width: 100%;
     background-color: rgb(180, 180, 180);
@@ -184,71 +265,168 @@ hr {
     background-color: #2f7f32;
 }
 
-.aside {
-    background-color: #5f9ea0;
-    padding: 15px;
-    color: #ffffff;
-    text-align: left;
-    font-size: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-}
+/* =============================================================================
+   Divider
+   ============================================================================= */
 
-.footer {
-    background-color: #5f9ea0;
-    color: #ffffff;
-    text-align: center;
-    font-size: 12px;
-    padding: 15px;
-}
-
-/* For mobile phones: */
-[class*="col-"] {
+hr {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    height: 2px;
+    border-width: 0;
+    color: var(--color-primary);
+    background-color: var(--color-primary);
     width: 100%;
 }
-      
-@media only screen and (min-width: 600px) {
-    /* For tablets: */
-    .col-s-1 {width: 8.33%;}
-    .col-s-2 {width: 16.66%;}
-    .col-s-3 {width: 25%;}
-    .col-s-4 {width: 33.33%;}
-    .col-s-5 {width: 41.66%;}
-    .col-s-6 {width: 50%;}
-    .col-s-7 {width: 58.33%;}
-    .col-s-8 {width: 66.66%;}
-    .col-s-9 {width: 75%;}
-    .col-s-10 {width: 83.33%;}
-    .col-s-11 {width: 91.66%;}
-    .col-s-12 {width: 100%;}
-}
-@media only screen and (min-width: 768px) {
-    /* For desktop: */
-    .col-1 {width: 8.33%;}
-    .col-2 {width: 16.66%;}
-    .col-3 {width: 25%;}
-    .col-4 {width: 33.33%;}
-    .col-5 {width: 41.66%;}
-    .col-6 {width: 50%;}
-    .col-7 {width: 58.33%;}
-    .col-8 {width: 66.66%;}
-    .col-9 {width: 75%;}
-    .col-10 {width: 83.33%;}
-    .col-11 {width: 91.66%;}
-    .col-12 {width: 100%;}
+
+/* =============================================================================
+   Help table
+   ============================================================================= */
+
+.helpinfo table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
 }
 
+.helpinfo td,
+.helpinfo th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.helpinfo tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.content {
+    margin: 15px;
+}
+
+/* =============================================================================
+   Loader spinner
+   ============================================================================= */
+
 .loader {
-    border: 16px solid #f3f3f3; 
-    border-top: 16px solid #5f9ea0;  
-    border-bottom: 16px solid #5f9ea0; 
+    border: 16px solid var(--color-bg-progress);
+    border-top: 16px solid var(--color-primary);
+    border-bottom: 16px solid var(--color-primary);
     border-radius: 50%;
     width: 120px;
     height: 120px;
     margin: auto;
     animation: spin 2s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
+}
+
+@keyframes spin {
+    0%   { transform: rotate(0deg);   }
     100% { transform: rotate(360deg); }
-  }
+}
+
+/* =============================================================================
+   Modals — backdrop
+   ============================================================================= */
+
+.modal,
+.modalDt,
+.modal-scan,
+.modal-loader {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--color-modal-bg);
+}
+
+/* =============================================================================
+   Modals — content box
+   ============================================================================= */
+
+.modal-content,
+.modal-content-loader {
+    position: relative;
+    font-size: 18px;
+    background-color: #fefefe;
+    color: var(--color-text-dark);
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 60%;
+    box-shadow: var(--box-shadow-modal);
+    animation-duration: 0.4s;
+}
+
+.modal-content {
+    animation-name: animatetop;
+}
+
+@keyframes animatetop {
+    from { top: -300px; opacity: 0; }
+    to   { top: 0;      opacity: 1; }
+}
+
+/* =============================================================================
+   Modals — header / body / footer
+   ============================================================================= */
+
+.modal-header {
+    padding: 2px 16px;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+}
+
+.modal-body {
+    padding: 2px 16px;
+    text-align: left;
+}
+
+.modal-footer {
+    padding: 2px 16px;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+}
+
+/* =============================================================================
+   Modals — close button
+   ============================================================================= */
+
+.close,
+.closeDt {
+    color: var(--color-close);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus,
+.closeDt:hover,
+.closeDt:focus {
+    color: var(--color-text-dark);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* =============================================================================
+   About link
+   ============================================================================= */
+
+.about_this {
+    color: #0043FF;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.about_this:hover {
+    color: #5772FF;
+}

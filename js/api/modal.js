@@ -1,72 +1,55 @@
 /**
- * modal handling
-*/
-function toggleModal(modalClass, btnClass, spanClass){
-  // Get the modal
-  let modals = document.querySelectorAll(modalClass);
-  // Get the button that opens the modal
-  let btns = document.querySelectorAll(btnClass);
-  // Get the <span> element that closes the modal
-  let spans = document.querySelectorAll(spanClass);
+ * modal.js
+ * Generic modal open/close logic and specialised scan / loader modals.
+ */
 
-  // Set up event listener for 'esc' key press
-  document.addEventListener("keydown", function(event) {
-    if (event.key === "Escape") {
-      for (let i = 0; i < modals.length; i++) {
-        let modal = modals[i];
-        if (modal.style.display === "block") {
-          modal.style.display = "none";
-          break; // Exit loop once modal is closed
+/**
+ * Binds open, close (×-button), Escape-key and outside-click behaviour
+ * to a set of modals identified by CSS class selectors.
+ *
+ * @param {string} modalClass  - Selector for modal container elements.
+ * @param {string} btnClass    - Selector for trigger buttons.
+ * @param {string} spanClass   - Selector for close (×) buttons inside modals.
+ */
+function toggleModal(modalClass, btnClass, spanClass) {
+    const modals = document.querySelectorAll(modalClass);
+    const btns   = document.querySelectorAll(btnClass);
+    const spans  = document.querySelectorAll(spanClass);
+
+    // Close the topmost open modal on Escape
+    document.addEventListener('keydown', ({ key }) => {
+        if (key !== 'Escape') return;
+        for (const modal of modals) {
+            if (modal.style.display === 'block') {
+                modal.style.display = 'none';
+                break;
+            }
         }
-      }
-    }
-  });
+    });
 
-  document.addEventListener("click", function(event) {
-    
-    for (let i = 0; i<modals.length; i++){
-      let modal = modals[i];
-      let btn = btns[i];
-      let span = spans[i];
-  
-      // When the user clicks on the button, open the modal 
-      if(event.target == btn) {
-        modal.style.display = "block";
-      }
-  
-      // When the user clicks on <span> (x), close the modal
-      if(event.target == span) {
-        modal.style.display = "none";
-      }
-
-      // Set up a single event listener for clicks outside modals
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
-
-    }
-
-  });
-};
-
-toggleModal(".modal", ".modalBtn", ".close");
-
-let modalScan = document.querySelector('.modal-scan');
-
-function modalScanOn() {
-  modalScan.style.display = "block";
+    // Delegate all click handling to one listener on the document
+    document.addEventListener('click', ({ target }) => {
+        modals.forEach((modal, i) => {
+            if (target === btns[i])  modal.style.display = 'block';  // open
+            if (target === spans[i]) modal.style.display = 'none';   // close via ×
+            if (target === modal)    modal.style.display = 'none';   // close via backdrop
+        });
+    });
 }
 
-function modalScanOff() {
-  modalScan.style.display = "none";
-}
+// Initialise the primary modal set (.modal / .modalBtn / .close)
+toggleModal('.modal', '.modalBtn', '.close');
 
-let modalLoader = document.querySelector('.modal-loader');
+// ── Scan progress modal ────────────────────────────────────────────────────────
 
-function modalLoaderOn() {
-  modalLoader.style.display = "block";
-}
+const modalScan = document.querySelector('.modal-scan');
 
-function modalLoaderOff() {
-  modalLoader.style.display = "none";
-}
+function modalScanOn()  { modalScan.style.display = 'block'; }
+function modalScanOff() { modalScan.style.display = 'none';  }
+
+// ── Loader modal ───────────────────────────────────────────────────────────────
+
+const modalLoader = document.querySelector('.modal-loader');
+
+function modalLoaderOn()  { modalLoader.style.display = 'block'; }
+function modalLoaderOff() { modalLoader.style.display = 'none';  }
